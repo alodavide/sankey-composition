@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <script type="text/javascript" src="./js/sankey.js"></script>
+<script type="text/javascript" src="../d3/d3.min.js"></script>
 
 <!--
 `sankey-composition`
@@ -113,10 +114,7 @@ The element is showing a set of glycan composition in a sankey
 
       created: function () {
         //check d3
-        if (!window.d3) {
-          alert('D3 is not loaded!!!!!');
-
-        }
+        //todo: fix loading d3. Must be loaded only if is not present.
 
       },
 
