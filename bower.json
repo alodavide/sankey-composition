@@ -3,8 +3,7 @@
   "description": "The element is showing a set of glycan composition in a sankey",
   "main": "sankey-composition.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.4.0",
-    "d3": "v3.4.13"
+    "polymer": "Polymer/polymer#^1.4.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
