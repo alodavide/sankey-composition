@@ -110,6 +110,11 @@ The element is showing a set of glycan composition in a sankey
         height: {
           type: Number,
           value: 500
+        },
+
+        created:{
+          type: Boolean,
+          value: false
         }
       },
 
@@ -224,7 +229,7 @@ The element is showing a set of glycan composition in a sankey
           return;
         }
 
-        if(created){
+        if(this.created){
           this._updateSankey(dataExp);
         } else{
           this._createSankey(dataExp);
