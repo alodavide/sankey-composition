@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>sankey-composition demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../sankey-composition.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic sankey-composition demo</h3>
+      <demo-snippet>
+        <template>
+          <sankey-composition width="300" height="200" data-experiment='{"links":[{"source":0,"target":1,"difference":"Fuc","value":1},
+          {"source":0,"target":2,"difference":"HexNAc","value":1},
+          {"source":1,"target":3,"difference":"HexNAc","value":1},
+          {"source":2,"target":3,"difference":"Fuc","value":1},
+          {"source":2,"target":4,"difference":"HexNAc","value":1},
+          {"source":3,"target":5,"difference":"HexNAc","value":1},
+          {"source":4,"target":5,"difference":"Fuc","value":1}],
+          "nodes":[{"name":"H3N2","percentage":"-1","size":5,"unicarbEncoding":"32000000000000"},
+          {"name":"H3N2F1","percentage":"-1","size":6,"unicarbEncoding":"32100000000000"},
+          {"name":"H3N3","percentage":"0.16","size":6,"unicarbEncoding":"33000000000000"},
+          {"name":"H3N3F1","percentage":"1.292","size":7,"unicarbEncoding":"33100000000000"},
+          {"name":"H3N4","percentage":"0.983","size":7,"unicarbEncoding":"34000000000000"},
+          {"name":"H3N4F1","percentage":"29.945","size":8,"unicarbEncoding":"34100000000000"}]}'></sankey-composition>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>
