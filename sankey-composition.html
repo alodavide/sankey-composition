@@ -82,16 +82,17 @@ The element is showing a set of glycan composition in a sankey
     Polymer({
       is: 'sankey-composition',
       properties: {
-        dataExperiment: {
-          type: Object,
-          observer: '_dataExperimentChanged'
+
+        selectedExperiment: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_selectedExperimentChanged'
         },
 
         selectedStructure: {
           type: String,
           notify: true,
-          reflectToAttribute: true,
-          value: 'ciao'
+          reflectToAttribute: true
         },
 
         sliderValue: {
@@ -145,14 +146,15 @@ The element is showing a set of glycan composition in a sankey
       },
 
       _createSankey: function () {
+        var dataExp = JSON.parse(localStorage.getItem(this.selectedExperiment).data);
         var format = d3.format(",.0f");
         var sankey = this.sankey;
         var path = this.path;
         var height = this.height;
-        sankey.nodes(this.dataExperiment.nodes).links(this.dataExperiment.links).layout(32);
+        sankey.nodes(dataExp.nodes).links(dataExp.links).layout(32);
 
         var link = this.svg.append("g").selectAll(".link")
-                .data(this.dataExperiment.links)
+                .data(dataExp.links)
                 .enter().append("path")
                 .attr("class", function(d) { return "link"+d.difference+ " link"; })
                 .attr("d", path)
@@ -163,12 +165,12 @@ The element is showing a set of glycan composition in a sankey
                 .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value+" "+d.difference; });
 
         var node = this.svg.append("g").selectAll(".node")
-                .data(this.dataExperiment.nodes)
+                .data(dataExp.nodes)
                 .enter().append("g")
                 .attr("class", "node")
                 .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
                 .on("click",function (event) {
-                  this.selectedStructure = event.name; // two-way binding for composition search.
+                  this.selectedStructure = event.unicarbEncoding; // two-way binding for composition search.
                 } )
                 .call(d3.behavior.drag()
                         .origin(function(d) { return d; })
@@ -212,38 +214,39 @@ The element is showing a set of glycan composition in a sankey
         }
       },
 
-      _dataExperimentChanged: function (newValue,oldValue){
+      _selectedExperimentChanged: function (newValue,oldValue){
 
         if(oldValue == undefined){
           return;
         }
-        console.log(this.dataExperiment);
-        if(Object.keys(this.dataExperiment).length === 0 && this.dataExperiment.constructor === Object){
+        var dataExp = JSON.parse(localStorage.getItem(newValue).data);
+
+        if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
           return;
         }
 
-        this._updateSankey();
+        this._updateSankey(dataExp);
 
       },
 
 
-      _updateSankey: function (){
+      _updateSankey: function (dataExp){
 
-        this.sankey.nodes(this.dataExperiment.nodes)
-                .links(this.dataExperiment.links)
+        this.sankey.nodes(dataExp.nodes)
+                .links(dataExp.links)
                 .size([this.width, this.height])
                 .layout(32);
 
 
         var nodes = d3.selectAll(".node")
-                .data(this.dataExperiment.nodes)
+                .data(dataExp.nodes)
                 .transition()
                 .duration(1000)
                 .attr("transform", function(d) {
                   return "translate(" + d.x + "," + d.y + ")"; });
 
         d3.selectAll("rect")
-                .data(this.dataExperiment.nodes)
+                .data(dataExp.nodes)
                 .transition()
                 .duration(1000)
                 .attr("height", function(d) { return d.dy; })
@@ -263,7 +266,7 @@ The element is showing a set of glycan composition in a sankey
                 });
 
         d3.selectAll("text")
-                .data(this.dataExperiment.nodes).attr("x", -6)
+                .data(dataExp.nodes).attr("x", -6)
                 .attr("y", function(d) { return d.dy / 2; })
                 .attr("dy", ".35em")
                 .attr("text-anchor", "end")
@@ -274,7 +277,7 @@ The element is showing a set of glycan composition in a sankey
                 .attr("text-anchor", "start");
 
         var links = d3.selectAll(".link")
-                .data(this.dataExperiment.links)
+                .data(dataExp.links)
                 .transition()
                 .duration(1000)
                 .attr("d", this.path)
