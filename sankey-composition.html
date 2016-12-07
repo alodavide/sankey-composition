@@ -141,11 +141,10 @@ The element is showing a set of glycan composition in a sankey
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        this._createSankey();
       },
 
       _createSankey: function () {
-        var dataExp = JSON.parse(localStorage.getItem(this.selectedExperiment).data);
+
         var format = d3.format(",.0f");
         var sankey = this.sankey;
         var path = this.path;
@@ -215,17 +214,21 @@ The element is showing a set of glycan composition in a sankey
 
       _selectedExperimentChanged: function (newValue,oldValue){
 
-        if(oldValue == undefined){
+        if(oldValue == undefined || newValue == ''){
           return;
         }
+
         var dataExp = JSON.parse(localStorage.getItem(newValue).data);
 
         if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
           return;
         }
 
-        this._updateSankey(dataExp);
-
+        if(created){
+          this._updateSankey(dataExp);
+        } else{
+          this._createSankey(dataExp);
+        }
       },
 
 
