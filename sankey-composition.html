@@ -89,19 +89,19 @@ The element is showing a set of glycan composition in a sankey
           <h2>Edge Selection</h2>
           <div>
             <div>
-              Hex: <paper-swatch-picker color="#4040a1" monosaccahride="Hex"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="Hex"></paper-toggle-button>
+              Hex: <paper-swatch-picker id="colorHex" color="#4040a1" ></paper-swatch-picker> <paper-toggle-button checked id="toggleHex" on-change="hideEdges"></paper-toggle-button>
             </div>
             <div>
-              HexNAc: <paper-swatch-picker color="#D2691E" monosaccahride="HexNAc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="HexNAc"></paper-toggle-button>
+              HexNAc: <paper-swatch-picker color="#D2691E" id="colorHexNAc"></paper-swatch-picker> <paper-toggle-button checked id="toggleHexNAc" on-change="hideEdges"></paper-toggle-button>
             </div>
             <div>
-              Fuc: <paper-swatch-picker color="#c94c4c" monosaccahride="Fuc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="Fuc"></paper-toggle-button>
+              Fuc: <paper-swatch-picker color="#c94c4c" id="colorFuc"></paper-swatch-picker> <paper-toggle-button checked id="toggleFuc" on-change="hideEdges"></paper-toggle-button>
             </div>
             <div>
-              NeuAc: <paper-swatch-picker color="#b8a9c9" monosaccahride="NeuAc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="NeuAc"></paper-toggle-button>
+              NeuAc: <paper-swatch-picker color="#b8a9c9" id="colorNeuAc"></paper-swatch-picker> <paper-toggle-button checked id="toggleNeuAc" on-change="hideEdges"></paper-toggle-button>
             </div>
             <div>
-              NeuGc: <paper-swatch-picker color="#d5f4e6" monosaccahride="NeuGc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="NeuGc"></paper-toggle-button>
+              NeuGc: <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker> <paper-toggle-button checked id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
             </div>
           </div>
         </div>
@@ -156,6 +156,7 @@ The element is showing a set of glycan composition in a sankey
         maxIntensitySlider: {
           type: Number
         }
+
       },
 
       listeners: {
@@ -193,7 +194,6 @@ The element is showing a set of glycan composition in a sankey
         this.path = this.sankey.link();
 
       },
-
 
       _createSankey: function (dataExp) {
 
@@ -415,17 +415,19 @@ The element is showing a set of glycan composition in a sankey
       },
 
       colorChangeHandler: function(e){
-        var edges = d3.select(this.$.chart).selectAll('.link'+e.target.monosaccharide);
+        var colorPicker = e.path[0];
+        var edges = d3.select(this.$.chart).selectAll('.link'+colorPicker.id.replace('color',''));
         for (var i = 0; i < edges.length; i++) {
-          edges.style("stroke", e.target.color);
+          edges.style("stroke", e.detail.color);
         }
       },
 
       hideEdges: function(e) {
-        var edges = d3.select(this.$.chart).selectAll('.link'+e.target.monosaccharide);
+        var toggleButton = e.target;
+        var edges = d3.select(this.$.chart).selectAll('.link'+toggleButton.id.replace('toggle',''));
         for (var i = 0; i < edges.length; i++) {
           edges.style("opacity", function () {
-            if (cb.checked) {
+            if (toggleButton.checked) {
               return 1;
             } else {
               return 0;
