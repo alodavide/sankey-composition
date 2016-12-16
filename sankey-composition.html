@@ -76,6 +76,10 @@ The element is showing a set of glycan composition in a sankey
         left: -7px;
       }
 
+      paper-slider {
+        width: 100%
+      }
+
     </style>
     <div>
       <iron-collapse id="collapse">
@@ -87,19 +91,16 @@ The element is showing a set of glycan composition in a sankey
         </div>
       </iron-collapse>
       <div id="chart"></div>
-      <div id="slider"></div>
-      <paper-slider pin value="20"></paper-slider>
+      <div>Integer value:</div><br>
+      <paper-slider id="sliderInteger" pin max="{{maxIntensitySlider}}"></paper-slider>
+      <div>Float value:</div><br>
+      <paper-slider id="sliderFloat" pin ></paper-slider>
     </div>
 
 
   </template>
 
   <script>
-
-    // Private variables. Not needed in Polymer.
-    var linearScale = {};
-    var sliderValue = 0;
-
     Polymer({
       is: 'sankey-composition',
       properties: {
@@ -129,10 +130,21 @@ The element is showing a set of glycan composition in a sankey
         initSankey: {
           type: Boolean,
           value: false
-        }
+        },
 
+        sliderValue: {
+          type: Number,
+          value:0
+        },
+
+        maxIntensitySlider: {
+          type: Number
+        }
       },
 
+      listeners: {
+        'immediate-value-change': 'immediateValueChangeHandler'
+      },
       created: function () {
         //check d3
         //todo: fix loading d3. Must be loaded only if is not present.
@@ -173,12 +185,8 @@ The element is showing a set of glycan composition in a sankey
         var path = this.path;
         var height = this.height;
 
-        var maxIntensity = Math.max.apply(Math,dataExp.nodes.map(function(o){return o.percentage;}));
+        this.maxIntensitySlider = Math.max.apply(Math,dataExp.nodes.map(function(o){return o.percentage;}));
 
-        linearScale = d3.scale.linear()
-                .domain([0,0.5,1,maxIntensity])
-                .range([0, this.width/3, (2*this.width)/3,this.width])
-                .clamp(true);
 
         //Not elegant but needed to change a polymer property from d3 (wrap context this into that).
         var that = this;
@@ -255,7 +263,6 @@ The element is showing a set of glycan composition in a sankey
           link.attr("d", path);
         }
 
-        this._addSlider();
       },
 
       _selectedExperimentChanged: function (newValue){
@@ -280,15 +287,11 @@ The element is showing a set of glycan composition in a sankey
 
       _updateSankey: function (dataExp){
 
-        var maxIntensity = Math.max.apply(Math,dataExp.nodes.map(function(o){return o.percentage;}));
+        this.maxIntensitySlider = Math.max.apply(Math,dataExp.nodes.map(function(o){return o.percentage;}));
         var format = d3.format(".4f");
-        linearScale = d3.scale.linear()
-                .domain([0,0.5,1,maxIntensity])
-                .range([0, this.width/3, (2*this.width)/3,this.width])
-                .clamp(true);
 
-        if(sliderValue > maxIntensity){
-          sliderValue = maxIntensity;
+        if(this.sliderValue > this.maxIntensitySlider){
+          this.sliderValue = this.maxIntensitySlider;
         }
 
         this.sankey.nodes(dataExp.nodes)
@@ -360,44 +363,17 @@ The element is showing a set of glycan composition in a sankey
 
       },
 
-      _addSlider: function (){
-
-        var chart = this.$.chart;
-        var dispatch = d3.dispatch("sliderChange");
-
-        var slider = d3.select(this.$.slider)
-                .style("width",chart.offsetWidth);
-
-
-        var sliderTray = slider.append("div")
-                .attr("class", "slider-tray");
-
-        var sliderHandle = slider.append("div")
-                .attr("class", "slider-handle");
-
-        sliderHandle.append("div")
-                .attr("class", "slider-handle-icon");
-
-        slider.call(d3.behavior.drag()
-                .on("dragstart", function() {
-                  dispatch.sliderChange(linearScale.invert(d3.mouse(sliderTray.node())[0]));
-                  d3.event.sourceEvent.preventDefault();
-                })
-                .on("drag", function() {
-                  dispatch.sliderChange(linearScale.invert(d3.mouse(sliderTray.node())[0]));
-                }));
-
-        dispatch.on("sliderChange.slider", function(value) {
-          sliderHandle.style("left", linearScale(value) + "px");
-          d3.select(chart).selectAll('.link').style("stroke-width", function (d) {
-            sliderValue = value;
-            if (d.source.value > value && d.target.value > value) {
-              return 4;
-            } else {
-              return 0;
-            }
-          })
-        });
+      immediateValueChangeHandler: function (){
+        var integerValue = this.$.sliderInteger.immediateValue;
+        var floatValue = this.$.sliderFloat.immediateValue;
+        var value = integerValue+(floatValue/100);
+        d3.select(this.$.chart).selectAll('.link').style("stroke-width", function (d) {
+          if (d.source.value > value && d.target.value > value) {
+            return 4;
+          } else {
+            return 0;
+          }
+        })
       },
 
       _edgecolor: function(d){
