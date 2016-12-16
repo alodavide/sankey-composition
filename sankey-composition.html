@@ -1,6 +1,8 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-collapse/iron-collapse.html">
 <link rel="import" href="../paper-slider/paper-slider.html">
+<link rel="import" href="../paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../paper-swatch-picker/paper-swatch-picker.html">
 <script type="text/javascript" src="../d3/d3.min.js"></script>
 <script type="text/javascript" src="./js/sankey.js"></script>
 
@@ -86,7 +88,21 @@ The element is showing a set of glycan composition in a sankey
         <div>
           <h2>Edge Selection</h2>
           <div>
-            Fuc:
+            <div>
+              Hex: <paper-swatch-picker color="#4040a1" monosaccahride="Hex"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="Hex"></paper-toggle-button>
+            </div>
+            <div>
+              HexNAc: <paper-swatch-picker color="#D2691E" monosaccahride="HexNAc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="HexNAc"></paper-toggle-button>
+            </div>
+            <div>
+              Fuc: <paper-swatch-picker color="#c94c4c" monosaccahride="Fuc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="Fuc"></paper-toggle-button>
+            </div>
+            <div>
+              NeuAc: <paper-swatch-picker color="#b8a9c9" monosaccahride="NeuAc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="NeuAc"></paper-toggle-button>
+            </div>
+            <div>
+              NeuGc: <paper-swatch-picker color="#d5f4e6" monosaccahride="NeuGc"></paper-swatch-picker> <paper-toggle-button checked monosaccahride="NeuGc"></paper-toggle-button>
+            </div>
           </div>
         </div>
       </iron-collapse>
@@ -143,7 +159,8 @@ The element is showing a set of glycan composition in a sankey
       },
 
       listeners: {
-        'immediate-value-change': 'immediateValueChangeHandler'
+        'immediate-value-change': 'immediateValueChangeHandler',
+        'color-picker-selected': 'colorChangeHandler'
       },
       created: function () {
         //check d3
@@ -395,6 +412,26 @@ The element is showing a set of glycan composition in a sankey
 
       openDrawer: function(){
         this.$.collapse.toggle();
+      },
+
+      colorChangeHandler: function(e){
+        var edges = d3.select(this.$.chart).selectAll('.link'+e.target.monosaccharide);
+        for (var i = 0; i < edges.length; i++) {
+          edges.style("stroke", e.target.color);
+        }
+      },
+
+      hideEdges: function(e) {
+        var edges = d3.select(this.$.chart).selectAll('.link'+e.target.monosaccharide);
+        for (var i = 0; i < edges.length; i++) {
+          edges.style("opacity", function () {
+            if (cb.checked) {
+              return 1;
+            } else {
+              return 0;
+            }
+          })
+        }
       },
 
       downloadSankey: function(){
