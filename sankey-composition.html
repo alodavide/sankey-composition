@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-collapse/iron-collapse.html">
+<link rel="import" href="../paper-slider/paper-slider.html">
 <script type="text/javascript" src="../d3/d3.min.js"></script>
 <script type="text/javascript" src="./js/sankey.js"></script>
 
@@ -23,55 +24,6 @@ The element is showing a set of glycan composition in a sankey
         text-shadow: 0 1px 0 #fff;
       }
 
-      .linkFuc {
-        fill: none;
-        stroke: #c94c4c;
-        stroke-opacity: .5;
-      }
-
-      .linkFuc:hover {
-        stroke-opacity: 1;
-      }
-
-      .linkHex {
-        fill: none;
-        stroke: #4040a1;
-        stroke-opacity: .5;
-      }
-
-      .linkHex:hover {
-        stroke-opacity: 1;
-      }
-
-      .linkHexNAc {
-        fill: none;
-        stroke: #D2691E;
-        stroke-opacity: .5;
-      }
-
-      .linkHexNAc:hover {
-        stroke-opacity: 1;
-      }
-
-      .linkNeuAc {
-        fill: none;
-        stroke: #b8a9c9;
-        stroke-opacity: .5;
-      }
-
-      .linkNeuAc:hover {
-        stroke-opacity: 1;
-      }
-
-      .linkNeuGc {
-        fill: none;
-        stroke: #d5f4e6;
-        stroke-opacity: .5;
-      }
-
-      .linkNeuGc:hover {
-        stroke-opacity: 1;
-      }
 
       .svg-container {
         display: inline-block;
@@ -90,6 +42,7 @@ The element is showing a set of glycan composition in a sankey
 
 
       .slider {
+        width: 100%;
         position: relative;
         top: 40px;
         left: 40px;
@@ -125,14 +78,17 @@ The element is showing a set of glycan composition in a sankey
 
     </style>
     <div>
-      <div id="chart"></div>
-      <div>
-
-        <div id="slider"></div>
-      </div>
       <iron-collapse id="collapse">
-        <div>Content goes here...</div>
+        <div>
+          <h2>Edge Selection</h2>
+          <div>
+            Fuc:
+          </div>
+        </div>
       </iron-collapse>
+      <div id="chart"></div>
+      <div id="slider"></div>
+      <paper-slider pin value="20"></paper-slider>
     </div>
 
 
@@ -173,12 +129,8 @@ The element is showing a set of glycan composition in a sankey
         initSankey: {
           type: Boolean,
           value: false
-        },
-
-        selected: {
-          type: Number,
-          value: 0
         }
+
       },
 
       created: function () {
@@ -236,7 +188,16 @@ The element is showing a set of glycan composition in a sankey
         var link = this.svg.append("g").selectAll(".link")
                 .data(dataExp.links)
                 .enter().append("path")
-                .attr("class", function(d) { return "link"+d.difference+ " link"; })
+                .attr("class", function(d) { return "link link"+d.difference; })
+                .style("stroke",this._edgecolor)
+                .style('fill','none')
+                .style("stroke-opacity", .5)
+                .on('mouseover', function(d){
+                  d3.select(this).style("stroke-opacity", 1);
+                })
+                .on('mouseout', function(d){
+                  d3.select(this).style("stroke-opacity", 0.5);
+                })
                 .attr("d", path)
                 .style("stroke-width", 4)
                 .sort(function(a, b) { return b.dy - a.dy; });
@@ -405,7 +366,7 @@ The element is showing a set of glycan composition in a sankey
         var dispatch = d3.dispatch("sliderChange");
 
         var slider = d3.select(this.$.slider)
-                .style("width","500px");
+                .style("width",chart.offsetWidth);
 
 
         var sliderTray = slider.append("div")
@@ -437,6 +398,45 @@ The element is showing a set of glycan composition in a sankey
             }
           })
         });
+      },
+
+      _edgecolor: function(d){
+        switch (d.difference) {
+          case "Fuc":
+            return '#c94c4c';
+          case "Hex":
+            return '#4040a1';
+          case "HexNAc":
+            return '#D2691E';
+          case "NeuAc":
+            return '#b8a9c9';
+          case "NeuGc":
+            return '#d5f4e6';
+          default:
+            return '#000000';
+        }
+      },
+
+      openDrawer: function(){
+        this.$.collapse.toggle();
+      },
+
+      downloadSankey: function(){
+
+        var doctype = '<?xml version="1.0" standalone="no"?>'
+                + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+        var source = (new XMLSerializer()).serializeToString(Polymer.dom(this.root).querySelector('svg'));
+        var blob = new Blob([ doctype + source], { type: 'image/svg+xml;charset=utf-8' });
+        var svgUrl = URL.createObjectURL(blob);
+        var downloadLink = document.createElement("a");
+
+        downloadLink.href = svgUrl;
+        downloadLink.download = JSON.parse(localStorage.getItem(this.selectedExperiment)).name+"-export.svg";
+        downloadLink.target = "_blank";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        window.URL.revokeObjectURL(svgUrl);
       }
     });
 

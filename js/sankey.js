@@ -59,8 +59,8 @@ d3.sankey = function() {
                 xi = d3.interpolateNumber(x0, x1),
                 x2 = xi(curvature),
                 x3 = xi(1 - curvature),
-                y0 = (d.source.y + d.dy / 2) - size[0]/100,
-                y1 = (d.target.y + d.dy / 2) - size[0]/100 ;
+                y0 = d.source.y + 3 ,
+                y1 = d.target.y + 3;
             return "M" + x0 + "," + y0
                 + "C" + x2 + "," + y0
                 + " " + x3 + "," + y1
