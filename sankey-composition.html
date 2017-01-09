@@ -31,7 +31,7 @@ The element is showing a set of glycan composition in a sankey
         display: inline-block;
         position: relative;
         width: 100%;
-        padding-bottom: 80%; /* aspect ratio */
+        padding-bottom: 70%; /* aspect ratio */
         vertical-align: top;
         overflow: hidden;
       }
@@ -106,11 +106,11 @@ The element is showing a set of glycan composition in a sankey
           </div>
         </div>
       </iron-collapse>
-      <div id="chart"></div>
       <div>Integer value:</div><br>
       <paper-slider id="sliderInteger" pin max="{{maxIntensitySlider}}"></paper-slider>
       <div>Float value:</div><br>
       <paper-slider id="sliderFloat" pin ></paper-slider>
+      <div id="chart"></div>
     </div>
 
 
@@ -122,7 +122,7 @@ The element is showing a set of glycan composition in a sankey
       properties: {
 
         selectedExperiment: {
-          type: String,
+          type: Object,
           reflectToAttribute: true,
           observer: '_selectedExperimentChanged'
         },
@@ -169,7 +169,7 @@ The element is showing a set of glycan composition in a sankey
 
       },
 
-      attached: function(){
+      init: function(){
         // Way to force polymer to apply style to D3 svg.
         this.scopeSubtree(this.$.chart, true);
         var margin = {top: 6, right: 1, bottom: 6, left: 1};
@@ -222,6 +222,13 @@ The element is showing a set of glycan composition in a sankey
                 })
                 .on('mouseout', function(d){
                   d3.select(this).style("stroke-opacity", 0.5);
+                })
+                .style('opacity', function(d){
+                  if (d.source.percentage > 0 && d.target.percentage > 0) {
+                    return 1;
+                  } else {
+                    return 0;
+                  }
                 })
                 .attr("d", path)
                 .style("stroke-width", 4)
@@ -284,11 +291,11 @@ The element is showing a set of glycan composition in a sankey
 
       _selectedExperimentChanged: function (newValue){
 
-        if(newValue == ''){
+        if(newValue.id == '' || newValue.id == null){
           return;
         }
 
-        var dataExp = JSON.parse(localStorage.getItem(newValue)).data;
+        var dataExp = JSON.parse(localStorage.getItem(newValue.id)).data;
 
         if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
           return;
@@ -297,6 +304,7 @@ The element is showing a set of glycan composition in a sankey
         if(this.initSankey){
           this._updateSankey(dataExp);
         } else{
+          this.init();
           this._createSankey(dataExp);
         }
       },
@@ -370,6 +378,13 @@ The element is showing a set of glycan composition in a sankey
                 .attr("class", function(d) { return "link"+d.difference+ " link"; })
                 .style("stroke-width", function (d) {
                   return 4;
+                })
+                .style('opacity', function(d){
+                  if (d.source.percentage > 0 && d.target.percentage > 0) {
+                    return 1;
+                  } else {
+                    return 0;
+                  }
                 })
                 .sort(function(a, b) {
                   return b.dy - a.dy; });
@@ -446,7 +461,7 @@ The element is showing a set of glycan composition in a sankey
         var downloadLink = document.createElement("a");
 
         downloadLink.href = svgUrl;
-        downloadLink.download = JSON.parse(localStorage.getItem(this.selectedExperiment)).name+"-export.svg";
+        downloadLink.download = JSON.parse(localStorage.getItem(this.selectedExperiment.id)).name+"-export.svg";
         downloadLink.target = "_blank";
         document.body.appendChild(downloadLink);
         downloadLink.click();
