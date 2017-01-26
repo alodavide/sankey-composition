@@ -78,6 +78,9 @@ The element is showing a set of glycan composition in a sankey
         left: -7px;
       }
 
+      .edgeCard {
+        width: 60px;
+      }
       paper-slider {
         width: 100%
       }
@@ -85,31 +88,41 @@ The element is showing a set of glycan composition in a sankey
     </style>
     <div>
       <iron-collapse id="collapse">
-        <div>
-          <h2>Edge Selection</h2>
-          <div>
-            <div>
-              Hex: <paper-swatch-picker id="colorHex" color="#4040a1" ></paper-swatch-picker> <paper-toggle-button checked id="toggleHex" on-change="hideEdges"></paper-toggle-button>
-            </div>
-            <div>
-              HexNAc: <paper-swatch-picker color="#D2691E" id="colorHexNAc"></paper-swatch-picker> <paper-toggle-button checked id="toggleHexNAc" on-change="hideEdges"></paper-toggle-button>
-            </div>
-            <div>
-              Fuc: <paper-swatch-picker color="#c94c4c" id="colorFuc"></paper-swatch-picker> <paper-toggle-button checked id="toggleFuc" on-change="hideEdges"></paper-toggle-button>
-            </div>
-            <div>
-              NeuAc: <paper-swatch-picker color="#b8a9c9" id="colorNeuAc"></paper-swatch-picker> <paper-toggle-button checked id="toggleNeuAc" on-change="hideEdges"></paper-toggle-button>
-            </div>
-            <div>
-              NeuGc: <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker> <paper-toggle-button checked id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
-            </div>
+        <div>Integer value:</div><br>
+        <paper-slider id="sliderInteger" pin max="{{maxIntensitySlider}}"></paper-slider>
+        <div>Float value:</div><br>
+        <paper-slider id="sliderFloat" pin ></paper-slider>
+      </iron-collapse>
+      <div>
+        <h3>Edge Selection</h3>
+        <div style="display: flex">
+          <div class="edgeCard">
+            <p style="padding-left: 14px">Hex</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleHex" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker id="colorHex" color="#4040a1" ></paper-swatch-picker>
+          </div>
+          <div class="edgeCard">
+            <p>HexNAc</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleHexNAc" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker color="#D2691E" id="colorHexNAc"></paper-swatch-picker>
+          </div>
+          <div class="edgeCard">
+            <p style="padding-left: 16px">Fuc</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleFuc" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker color="#c94c4c" id="colorFuc"></paper-swatch-picker>
+          </div>
+          <div class="edgeCard">
+            <p style="padding-left: 6px">NeuAc</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleNeuAc" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker color="#b8a9c9" id="colorNeuAc"></paper-swatch-picker>
+          </div>
+          <div class="edgeCard">
+            <p style="padding-left: 6px">NeuGc</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker>
           </div>
         </div>
-      </iron-collapse>
-      <div>Integer value:</div><br>
-      <paper-slider id="sliderInteger" pin max="{{maxIntensitySlider}}"></paper-slider>
-      <div>Float value:</div><br>
-      <paper-slider id="sliderFloat" pin ></paper-slider>
+      </div>
       <div id="chart"></div>
     </div>
 
@@ -155,8 +168,12 @@ The element is showing a set of glycan composition in a sankey
 
         maxIntensitySlider: {
           type: Number
-        }
+        },
 
+        sankeyKy: {
+          type: Number,
+          value:100
+        }
       },
 
       listeners: {
@@ -207,8 +224,9 @@ The element is showing a set of glycan composition in a sankey
 
         //Not elegant but needed to change a polymer property from d3 (wrap context this into that).
         var that = this;
+        sankey.nodes(dataExp.nodes).links(dataExp.links).kyValue(this.sankeyKy).layout(32);
 
-        sankey.nodes(dataExp.nodes).links(dataExp.links).layout(32);
+        this.sankeyKy = sankey.kyValue();
 
         var link = this.svg.append("g").selectAll(".link")
                 .data(dataExp.links)
@@ -223,13 +241,7 @@ The element is showing a set of glycan composition in a sankey
                 .on('mouseout', function(d){
                   d3.select(this).style("stroke-opacity", 0.5);
                 })
-                .style('opacity', function(d){
-                  if (d.source.percentage > 0 && d.target.percentage > 0) {
-                    return 1;
-                  } else {
-                    return 0;
-                  }
-                })
+                .style('opacity', 0)
                 .attr("d", path)
                 .style("stroke-width", 4)
                 .sort(function(a, b) { return b.dy - a.dy; });
@@ -260,7 +272,7 @@ The element is showing a set of glycan composition in a sankey
                     return 'white';
                   } else if(p < 1 && p > 0){
                     return 'yellow';
-                  } else if(p > 1){
+                  } else if(p >= 1){
                     return 'green';
                   }
                 })
@@ -295,7 +307,12 @@ The element is showing a set of glycan composition in a sankey
           return;
         }
 
-        var dataExp = JSON.parse(localStorage.getItem(newValue.id)).data;
+        try {
+          var dataExp = JSON.parse(localStorage.getItem(newValue.id)).data;
+        } catch(error) {
+          //TODO: add paper toast
+          window.location = '/';
+        }
 
         if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
           return;
@@ -314,6 +331,12 @@ The element is showing a set of glycan composition in a sankey
 
         this.maxIntensitySlider = Math.max.apply(Math,dataExp.nodes.map(function(o){return o.percentage;}));
         var format = d3.format(".4f");
+        var edgeOpacityMap = {};
+        edgeOpacityMap['Fuc']= this.$.toggleFuc.checked;
+        edgeOpacityMap['Hex']= this.$.toggleHex.checked;
+        edgeOpacityMap['HexNAc']= this.$.toggleHexNAc.checked;
+        edgeOpacityMap['NeuAc']= this.$.toggleNeuAc.checked;
+        edgeOpacityMap['NeuGc']= this.$.toggleNeuGc.checked;
 
         if(this.sliderValue > this.maxIntensitySlider){
           this.sliderValue = this.maxIntensitySlider;
@@ -321,9 +344,11 @@ The element is showing a set of glycan composition in a sankey
 
         this.sankey.nodes(dataExp.nodes)
                 .links(dataExp.links)
+                .kyValue(this.sankeyKy)
                 .size([1230, 800])
                 .layout(32);
 
+        this.sankeyKy = this.sankey.kyValue();
 
         var nodes = this.svg.selectAll(".node")
                 .data(dataExp.nodes)
@@ -346,12 +371,12 @@ The element is showing a set of glycan composition in a sankey
                     return 'white';
                   } else if(p < 1 && p > 0){
                     return 'yellow';
-                  } else if(p > 1){
+                  } else if(p >= 1){
                     return 'green';
                   }
                 });
 
-        nodes.select('title').remove();
+        nodes.selectAll('title').remove();
 
         this.svg.selectAll(".node").append('title')
                 .data(dataExp.nodes)
@@ -370,26 +395,24 @@ The element is showing a set of glycan composition in a sankey
                 .attr("x", 6 + this.sankey.nodeWidth())
                 .attr("text-anchor", "start");
 
+
+
         var links = this.svg.selectAll(".link")
                 .data(dataExp.links)
                 .transition()
                 .duration(1000)
                 .attr("d", this.path)
                 .attr("class", function(d) { return "link"+d.difference+ " link"; })
-                .style("stroke-width", function (d) {
-                  return 4;
-                })
-                .style('opacity', function(d){
-                  if (d.source.percentage > 0 && d.target.percentage > 0) {
+                .style("opacity", function (d) {
+                  if (d.source.percentage > 0 && d.target.percentage > 0 && edgeOpacityMap[d.difference]) {
                     return 1;
                   } else {
                     return 0;
-                  }
-                })
+                  }})
                 .sort(function(a, b) {
                   return b.dy - a.dy; });
 
-        links.select('title').remove();
+        links.selectAll('title').remove();
 
         this.svg.selectAll(".link").append("title").text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value+" "+d.difference; });
 
@@ -441,8 +464,8 @@ The element is showing a set of glycan composition in a sankey
         var toggleButton = e.target;
         var edges = d3.select(this.$.chart).selectAll('.link'+toggleButton.id.replace('toggle',''));
         for (var i = 0; i < edges.length; i++) {
-          edges.style("opacity", function () {
-            if (toggleButton.checked) {
+          edges.style("opacity", function (d) {
+            if (d.source.percentage > 0 && d.target.percentage > 0 && toggleButton.checked) {
               return 1;
             } else {
               return 0;
@@ -467,6 +490,8 @@ The element is showing a set of glycan composition in a sankey
         downloadLink.click();
         document.body.removeChild(downloadLink);
         window.URL.revokeObjectURL(svgUrl);
+
+        //TODO: se safari window.open("data:image/svg+xml," + encodeURIComponent(currentSVGString));
       }
     });
 

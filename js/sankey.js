@@ -2,6 +2,7 @@ d3.sankey = function() {
     var sankey = {},
         nodeWidth = 24,
         nodePadding = 8,
+        kyValue = 100,
         size = [1, 1],
         nodes = [],
         links = [];
@@ -15,6 +16,12 @@ d3.sankey = function() {
     sankey.nodePadding = function(_) {
         if (!arguments.length) return nodePadding;
         nodePadding = +_;
+        return sankey;
+    };
+
+    sankey.kyValue = function(_) {
+        if (!arguments.length) return kyValue;
+        kyValue = +_;
         return sankey;
     };
 
@@ -155,7 +162,7 @@ d3.sankey = function() {
             .entries(nodes)
             .map(function(d) { return d.values; });
 
-        //
+
         initializeNodeDepth();
         resolveCollisions();
         for (var alpha = 1; iterations > 0; --iterations) {
@@ -166,9 +173,16 @@ d3.sankey = function() {
         }
 
         function initializeNodeDepth() {
+
             var ky = d3.min(nodesByBreadth, function(nodes) {
-                return (size[1] - (nodes.length - 1) * nodePadding) / d3.sum(nodes, value);
+                return (size[1] - (nodes.length - 1) * nodePadding) / d3.sum(nodes,value);
             });
+
+            if(ky > kyValue){
+                ky = kyValue;
+            } else{
+                kyValue = ky;
+            }
 
             nodesByBreadth.forEach(function(nodes) {
                 nodes.forEach(function(node, i) {
@@ -180,6 +194,7 @@ d3.sankey = function() {
             links.forEach(function(link) {
                 link.dy = link.value * ky;
             });
+
         }
 
         function relaxLeftToRight(alpha) {
