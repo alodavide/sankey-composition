@@ -47,7 +47,7 @@ d3.sankey = function() {
         computeNodeLinks();
         computeNodeValues();
         computeNodeBreadths();
-        computeNodeDepths(iterations);
+        computeNodeDepths(0);
         computeLinkDepths();
         return sankey;
     };
@@ -103,14 +103,14 @@ d3.sankey = function() {
     // Compute the value (size) of each node by summing the associated links.
     function computeNodeValues() {
         nodes.forEach(function(node) {
-            var flotVal = parseFloat(node.percentage);
-
-            if( flotVal === 0){
+            if(node.percentage == 'nottested'){
                 node.value = 0.3;
                 return;
             }
 
-            if( flotVal === -1){
+            var flotVal = Math.abs(parseFloat(node.percentage));
+
+            if( flotVal === 0){
                 node.value = 0.3;
                 return;
             }
@@ -160,7 +160,7 @@ d3.sankey = function() {
             .key(function(d) { return d.x; })
             .sortKeys(d3.ascending)
             .entries(nodes)
-            .map(function(d) { return d.values; });
+            .map(function(d) { return d.values ; });
 
 
         initializeNodeDepth();
@@ -178,6 +178,7 @@ d3.sankey = function() {
                 return (size[1] - (nodes.length - 1) * nodePadding) / d3.sum(nodes,value);
             });
 
+            //Needed to have same scale across multiple experiment
             if(ky > kyValue){
                 ky = kyValue;
             } else{
@@ -185,6 +186,10 @@ d3.sankey = function() {
             }
 
             nodesByBreadth.forEach(function(nodes) {
+                //order by HexNAc ascending
+                nodes.sort(function(a, b) {
+                    return d3.ascending(a.hexNAc, b.hexNAc);
+                });
                 nodes.forEach(function(node, i) {
                     node.y = i;
                     node.dy = node.value * ky;
@@ -236,7 +241,10 @@ d3.sankey = function() {
                     i;
 
                 // Push any overlapping nodes down.
-                nodes.sort(ascendingDepth);
+                nodes.sort(function(a, b) {
+                    return d3.ascending(a.hexNAc, b.hexNAc);
+                });
+
                 for (i = 0; i < n; ++i) {
                     node = nodes[i];
                     dy = y0 - node.y;
@@ -258,10 +266,6 @@ d3.sankey = function() {
                     }
                 }
             });
-        }
-
-        function ascendingDepth(a, b) {
-            return b.name - a.name;
         }
     }
 
