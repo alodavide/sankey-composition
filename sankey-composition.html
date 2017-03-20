@@ -139,6 +139,16 @@ The element is showing a set of glycan composition in a sankey
       },
 
       init: function(){
+        //Add for internet Explorer
+        if (!Array.prototype.indexOf) {
+          Array.prototype.indexOf = function(obj, start) {
+            for (var i = (start || 0), j = this.length; i < j; i++) {
+              if (this[i] === obj) { return i; }
+            }
+            return -1;
+          }
+        }
+
         // Way to force polymer to apply style to D3 svg.
         this.scopeSubtree(this.$.chart, true);
         var margin = {top: 6, right: 1, bottom: 6, left: 1};
@@ -227,7 +237,13 @@ The element is showing a set of glycan composition in a sankey
                   }
 
                   var p = parseFloat(d.percentage);
-                  if(this.baseURI.indexOf('difference') !== -1){
+                  var url;
+                  if(this.baseURI){
+                    url = this.baseURI;
+                  } else {
+                    url = document.URL;
+                  }
+                  if(url.indexOf('difference') !== -1){
                     if(p < 0){
                       return 'red';
                     } else if(p > 0){
@@ -353,7 +369,7 @@ The element is showing a set of glycan composition in a sankey
         this.sankeyKy = this.sankey.kyValue();
 
         //Adjust viewbox
-        var maxWidth;
+        var maxWidth=0;
         for(var i=0; i<dataExp.nodes.length; i++){
           if(maxWidth < dataExp.nodes[i].x){
             maxWidth = dataExp.nodes[i].x;
@@ -382,7 +398,13 @@ The element is showing a set of glycan composition in a sankey
                     return 'gray';
                   }
                   var p = parseFloat(d.percentage);
-                  if(this.baseURI.indexOf('difference') !== -1){
+                  var url;
+                  if(this.baseURI){
+                    url = this.baseURI;
+                  } else {
+                    url = document.URL;
+                  }
+                  if(url.indexOf('difference') !== -1){
                     if(p < 0){
                       return 'red';
                     } else if(p > 0){
