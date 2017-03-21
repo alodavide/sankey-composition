@@ -1,8 +1,10 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../paper-swatch-picker/paper-swatch-picker.html">
-<script type="text/javascript" src="../d3/d3.min.js"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript" src="./js/sankey.js"></script>
+
+
 
 
 <!--
@@ -90,55 +92,50 @@ The element is showing a set of glycan composition in a sankey
   </template>
 
   <script>
-    Polymer({
-      is: 'sankey-composition',
-      properties: {
+    class SankeyComposition extends Polymer.Element {
+      static get is() { return 'sankey-composition'; }
+      static get properties() {
+        return {
+          selectedExperiment: {
+            type: Object,
+            reflectToAttribute: true,
+            observer: '_selectedExperimentChanged'
+          },
 
-        selectedExperiment: {
-          type: Object,
-          reflectToAttribute: true,
-          observer: '_selectedExperimentChanged'
-        },
+          selectedStructure: {
+            type: String,
+            notify: true,
+            reflectToAttribute: true
+          },
 
-        selectedStructure: {
-          type: String,
-          notify: true,
-          reflectToAttribute: true
-        },
+          width: {
+            type: Number,
+            value: 1250
+          },
 
-        width: {
-          type: Number,
-          value: 1250
-        },
+          height: {
+            type: Number,
+            value: 850
+          },
 
-        height: {
-          type: Number,
-          value: 850
-        },
+          initSankey: {
+            type: Boolean,
+            value: false
+          },
 
-        initSankey: {
-          type: Boolean,
-          value: false
-        },
+          sankeyKy: {
+            type: Number,
+            value:100
+          }
+        };
+      }
 
+      constructor(){
+        super();
+        this.addEventListener('color-picker-selected','colorChangeHandler');
+      }
 
-        sankeyKy: {
-          type: Number,
-          value:100
-        }
-      },
-
-      listeners: {
-        'immediate-value-change': 'immediateValueChangeHandler',
-        'color-picker-selected': 'colorChangeHandler'
-      },
-      created: function () {
-        //check d3
-        //todo: fix loading d3. Must be loaded only if is not present.
-
-      },
-
-      init: function(){
+      init(){
         //Add for internet Explorer
         if (!Array.prototype.indexOf) {
           Array.prototype.indexOf = function(obj, start) {
@@ -169,9 +166,9 @@ The element is showing a set of glycan composition in a sankey
                 .size([1230, 800]);
 
         this.path = this.sankey.link();
-      },
+      }
 
-      _createSankey: function (dataExp) {
+      _createSankey(dataExp) {
 
         var format = d3.format(".4f");
         var sankey = this.sankey;
@@ -289,9 +286,9 @@ The element is showing a set of glycan composition in a sankey
           link.attr("d", path);
         }
 
-      },
+      }
 
-      _selectedExperimentChanged: function (newValue){
+      _selectedExperimentChanged(newValue){
 
         if(newValue.mode == '' || newValue.mode == null){
           return;
@@ -345,10 +342,10 @@ The element is showing a set of glycan composition in a sankey
           this.init();
           this._createSankey(dataExp);
         }
-      },
+      }
 
 
-      _updateSankey: function (dataExp){
+      _updateSankey(dataExp){
 
         var format = d3.format(".4f");
         var edgeOpacityMap = {};
@@ -467,10 +464,10 @@ The element is showing a set of glycan composition in a sankey
         links.selectAll('title').remove();
         this.svg.selectAll(".link").append("title").text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value+" "+d.difference; });
 
-      },
+      }
 
 
-      _edgecolor: function(d){
+      _edgecolor(d){
         switch (d.difference) {
           case "Fuc":
             return '#c94c4c';
@@ -487,18 +484,17 @@ The element is showing a set of glycan composition in a sankey
           default:
             return '#000000';
         }
-      },
+      }
 
-
-      colorChangeHandler: function(e){
+      colorChangeHandler(e){
         var colorPicker = e.path[0];
         var edges = d3.select(this.$.chart).selectAll('.link'+colorPicker.id.replace('color',''));
         for (var i = 0; i < edges.length; i++) {
           edges.style("stroke", e.detail.color);
         }
-      },
+      }
 
-      hideEdges: function(e) {
+      hideEdges(e) {
         var toggleButton = e.target;
         var edges = d3.select(this.$.chart).selectAll('.link'+toggleButton.id.replace('toggle',''));
         for (var i = 0; i < edges.length; i++) {
@@ -510,9 +506,9 @@ The element is showing a set of glycan composition in a sankey
             }
           })
         }
-      },
+      }
 
-      downloadSankey: function(){
+      downloadSankey(){
 
         var doctype = '<?xml version="1.0" standalone="no"?>'
                 + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
@@ -531,7 +527,9 @@ The element is showing a set of glycan composition in a sankey
 
         //TODO: se safari window.open("data:image/svg+xml," + encodeURIComponent(currentSVGString));
       }
-    });
+    }
+
+    window.customElements.define(SankeyComposition.is, SankeyComposition);
 
   </script>
 </dom-module>
