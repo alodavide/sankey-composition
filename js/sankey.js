@@ -107,14 +107,14 @@ d3.sankey = function() {
                 node.value = 0.3;
                 return;
             }
-
+            
             var flotVal = Math.abs(parseFloat(node.percentage));
 
             if( flotVal === 0){
                 node.value = 0.3;
                 return;
             }
-
+            
             node.value = flotVal + 0.3;
         });
     }
@@ -128,7 +128,8 @@ d3.sankey = function() {
             nextNodes,
             x = 0,
             minSize = Math.min.apply(Math,nodes.map(function(o){return o.size;}));
-
+            //Important:Added to leave space for the legend bar.
+            minSize--;
 
         while (remainingNodes.length) {
             nextNodes = [];

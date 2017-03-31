@@ -1,7 +1,8 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-toast/paper-toast.html">
 <link rel="import" href="../paper-swatch-picker/paper-swatch-picker.html">
-<script type="text/javascript" src="../d3/d3.min.js"></script>
 <script type="text/javascript" src="./js/sankey.js"></script>
 
 
@@ -40,9 +41,15 @@ The element is showing a set of glycan composition in a sankey
       }
 
       .edgeCard {
-        width: 60px;
+        width: 50px;
+        font-size: 16px;
       }
 
+      paper-toast {
+        font-weight: bold;
+        width: 300px;
+        margin-left: calc(98vw - 300px);
+      }
     </style>
     <div>
       <div>
@@ -69,20 +76,26 @@ The element is showing a set of glycan composition in a sankey
             <paper-swatch-picker color="#b8a9c9" id="colorNeuAc"></paper-swatch-picker>
           </div>
           <div class="edgeCard">
-            <p style="padding-left: 6px">NeuGc</p>
-            <paper-toggle-button style="padding-left: 10px" id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
-            <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker>
-          </div>
-          <div class="edgeCard">
             <p style="padding-left: 16px">Sulf</p>
             <paper-toggle-button style="padding-left: 10px" id="toggleSulf" on-change="hideEdges"></paper-toggle-button>
             <paper-swatch-picker color="#26c8fe" id="colorSulf"></paper-swatch-picker>
           </div>
+          <div class="edgeCard">
+            <p style="padding-left: 6px">NeuGc</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker>
+          </div>
         </div>
+      </div>
+      <div style="width: 300px;margin-bottom: 10px">
+        <h3>Legend Settings</h3>
+        <paper-input on-input="changeLegendCaption" label="Legend Caption" type='text' value="{{legendCaption}}"></paper-input>
+        <paper-input on-input="changeLegendValue" label="Legend Value" type='number' value="{{legendValue}}"></paper-input>
       </div>
       <div id="chart"></div>
     </div>
 
+    <paper-toast id="errorToast" text=""></paper-toast>
 
   </template>
 
@@ -90,6 +103,16 @@ The element is showing a set of glycan composition in a sankey
     Polymer({
       is: 'sankey-composition',
       properties: {
+
+        legendCaption:{
+          type: String,
+          value: '%'
+        },
+
+        legendValue:{
+          type: Number,
+          value: 5
+        },
 
         selectedExperiment: {
           type: Object,
@@ -186,6 +209,7 @@ The element is showing a set of glycan composition in a sankey
             maxWidth = dataExp.nodes[i].x;
           }
         }
+
         if(this.width < maxWidth) {
           maxWidth = maxWidth+50;
           Polymer.dom(this.root).querySelector('svg').setAttribute('viewBox', '0 0 ' + maxWidth + ' ' + this.height);
@@ -278,6 +302,24 @@ The element is showing a set of glycan composition in a sankey
                 .attr("x", 6 + sankey.nodeWidth())
                 .attr("text-anchor", "start");
 
+        var legend = this.svg.append("g")
+                .attr("class", "legend");
+
+        legend.append("rect")
+                .attr("height", this.legendValue * this.sankeyKy)
+                .attr("width", sankey.nodeWidth())
+                .style("fill",'#7a527a' )
+                .style("stroke", 'black');
+
+        legend.append("text")
+                .attr("x", -6)
+                .attr("y", (this.legendValue * this.sankeyKy)/2)
+                .attr("dy", ".35em")
+                .attr("transform", null)
+                .text(this.legendValue+' '+this.legendCaption)
+                .attr("x", 6 + sankey.nodeWidth())
+                .attr("text-anchor", "start");
+
         this.initSankey = true;
 
         function dragmove(d) {
@@ -319,16 +361,23 @@ The element is showing a set of glycan composition in a sankey
             }
             dataExp = dataExp1;
           } catch(error) {
-            console.log(error);
-            //Todo: add paper toast with error
+            this.$.errorToast.text = 'Cannot compute the difference between Experiment '+newValue.exp.replace('_',' and ');
+            this.$.errorToast.open();
+            setTimeout(function () {
+              window.location = '/';
+            }, 4000);
+
           }
 
         } else {
           try {
             dataExp = JSON.parse(localStorage.getItem(newValue.exp)).data;
           } catch(error) {
-            //TODO: add paper toast
-            window.location = '/';
+            this.$.errorToast.text = 'Cannot Find the Experiment number '+newValue.exp.replace('GLYNSIGHTID_','');
+            this.$.errorToast.open();
+            setTimeout(function () {
+              window.location = '/';
+            }, 4000);
           }
 
           if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
@@ -509,6 +558,56 @@ The element is showing a set of glycan composition in a sankey
         }
       },
 
+      changeLegendCaption: function(e){
+        this.legendCaption = e.target.value;
+        var legend =this.svg.selectAll(".legend");
+
+        legend.selectAll("rect")
+                .transition()
+                .duration(1000)
+                .attr("height", this.legendValue * this.sankeyKy)
+                .attr("width", this.sankey.nodeWidth())
+                .style("fill",'red' )
+                .style("stroke", 'black');
+
+        legend.selectAll("text")
+                .transition()
+                .duration(1000)
+                .attr("x", -6)
+                .attr("y", (this.legendValue * this.sankeyKy)/2)
+                .attr("dy", ".35em")
+                .attr("transform", null)
+                .text(this.legendValue+' '+this.legendCaption)
+                .attr("x", 6 + this.sankey.nodeWidth())
+                .attr("text-anchor", "start");
+
+      },
+
+      changeLegendValue: function(e){
+        this.legendValue = e.target.value;
+        var legend =this.svg.selectAll(".legend");
+
+        legend.selectAll("rect")
+                .transition()
+                .duration(1000)
+                .attr("height", this.legendValue * this.sankeyKy)
+                .attr("width", this.sankey.nodeWidth())
+                .style("fill",'#7a527a' )
+                .style("stroke", 'black');
+
+        legend.selectAll("text")
+                .transition()
+                .duration(1000)
+                .attr("x", -6)
+                .attr("y", (this.legendValue * this.sankeyKy)/2)
+                .attr("dy", ".35em")
+                .attr("transform", null)
+                .text(this.legendValue+' '+this.legendCaption)
+                .attr("x", 6 + this.sankey.nodeWidth())
+                .attr("text-anchor", "start");
+
+      },
+
       downloadSankey: function(){
 
         var doctype = '<?xml version="1.0" standalone="no"?>'
@@ -529,6 +628,8 @@ The element is showing a set of glycan composition in a sankey
         //TODO: se safari window.open("data:image/svg+xml," + encodeURIComponent(currentSVGString));
       }
     });
+
+
 
   </script>
 </dom-module>
