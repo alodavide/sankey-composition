@@ -4,10 +4,9 @@
   "main": "sankey-composition.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "paper-input": "PolymerElements/paper-input#^1.1.22",
     "paper-swatch-picker": "PolymerElements/paper-swatch-picker#^1.0.2",
-    "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.2.1",
-    "paper-toast": "PolymerElements/paper-toast#^1.3.0"
+    "paper-input": "PolymerElements/paper-input#^1.1.22",
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.2.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

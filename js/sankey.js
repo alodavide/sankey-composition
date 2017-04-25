@@ -103,12 +103,12 @@ d3.sankey = function() {
     // Compute the value (size) of each node by summing the associated links.
     function computeNodeValues() {
         nodes.forEach(function(node) {
-            if(node.percentage == 'nottested'){
+            if(node.quantification == 'nottested'){
                 node.value = 0.3;
                 return;
             }
             
-            var flotVal = Math.abs(parseFloat(node.percentage));
+            var flotVal = Math.abs(parseFloat(node.quantification));
 
             if( flotVal === 0){
                 node.value = 0.3;
