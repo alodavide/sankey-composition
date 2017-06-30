@@ -16,7 +16,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
 @demo demo/index.html
 -->
 
-<dom-module id="sankey-composition">
+<dom-module id="sankey-composition" include="iron-flex iron-flex-alignment">
   <template>
     <style>
       :host {
@@ -111,6 +111,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
       static get is() { return 'sankey-composition'; }
       static get properties() {
         return {
+
           legendCaption:{
             type: String,
             value: '%'
@@ -127,7 +128,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
           },
 
           selectedExperiment: {
-            type: Object,
+            type: Array,
             reflectToAttribute: true,
             observer: '_selectedExperimentChanged'
           },
@@ -153,17 +154,35 @@ Important: The component is set to work on a subfolder '/glynsight'.
             value: false
           },
 
-          mode: {
-            type: String
-          },
-
           sankeyKy: {
             type: Number,
             value:100
+          },
+
+          mode: {
+            type: String,
+            default: 'show',
+            observer: '_enumMode'
           }
+
         };
       }
 
+      _enumMode(newValue, oldValue) {
+        var validMode = ['show','difference'];
+        if(validMode.indexOf(newValue) === -1) {
+          this.color = oldValue;
+
+        }
+      }
+
+      _enumLocation(newValue, oldValue) {
+        var validMode = ['file','localstorage'];
+        if(validMode.indexOf(newValue) === -1) {
+          this.color = oldValue;
+
+        }
+      }
 
 
       init(){
@@ -178,7 +197,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
         }
 
         // Way to force polymer to apply style to D3 svg.
-        this.scopeSubtree(this.$.chart, true);
+        //this.scopeSubtree(this.$.chart, true);
         var margin = {top: 6, right: 1, bottom: 6, left: 1};
 
         this.svg = d3.select(this.$.chart)
@@ -342,15 +361,15 @@ Important: The component is set to work on a subfolder '/glynsight'.
 
       _selectedExperimentChanged (newValue){
 
-        if(newValue.mode == '' || newValue.mode == null){
+        if(this.mode == '' || this.mode == null){
           return;
         }
-        this.mode = newValue.mode;
+
         var dataExp;
+        var exp = newValue;
 
         if(newValue.mode == 'difference'){
           try {
-            var exp = newValue.exp.split('_');
             var dataExp2 = JSON.parse(localStorage.getItem('GLYNSIGHTID_'+exp[1])).data;
             var dataExp1 = JSON.parse(localStorage.getItem('GLYNSIGHTID_'+exp[0])).data;
 
@@ -372,14 +391,16 @@ Important: The component is set to work on a subfolder '/glynsight'.
             }
             dataExp = dataExp1;
           } catch(error) {
-            window.location = '/glynsight/error404';
+            //TODO: fix the error, we need to define a message box!
+            console.log('there is an error in file', error);
           }
 
         } else {
           try {
-            dataExp = JSON.parse(localStorage.getItem(newValue.exp)).data;
+            dataExp = JSON.parse(localStorage.getItem('GLYNSIGHTID_'+exp[0])).data;
           } catch(error) {
-            window.location = '/glynsight/error404';
+            //TODO: fix the error, we need to define a message box!
+            console.log('there is an error in file', error);
           }
 
           if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
@@ -394,7 +415,6 @@ Important: The component is set to work on a subfolder '/glynsight'.
           this._createSankey(dataExp);
         }
       }
-
 
       _updateSankey (dataExp){
 
