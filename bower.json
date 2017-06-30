@@ -3,15 +3,19 @@
   "description": "The element is showing a set of glycan composition in a sankey",
   "main": "sankey-composition.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#2.0.0-rc.1",
-    "paper-swatch-picker": "PolymerElements/paper-swatch-picker#^1.0.2",
-    "paper-toggle-button": "PolymerElements/paper-toggle-button#2.0-preview",
-    "paper-toast": "PolymerElements/paper-toast#2.0-preview"
+    "polymer": "Polymer/polymer#^2.0.1",
+    "paper-swatch-picker": "PolymerElements/paper-swatch-picker#^2.0.0",
+    "paper-input": "PolymerElements/paper-input#^2.0.1",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^2.0.0",
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#^2.0.0",
+    "lib-d3": "alodavide/lib-d3#^3.5.17"
   },
   "devDependencies": {
-    "iron-component-page": "PolymerElements/iron-component-page#2.0-preview",
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#2.0-preview",
-    "web-component-tester": "v6.0.0-prerelease.5",
+    "web-component-tester": "^6.0.0-prerelease.5",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0-rc.5"
+  },
+  "resolutions": {
+    "polymer": "^2.0.1"
   }
 }

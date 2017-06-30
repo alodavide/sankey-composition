@@ -1,7 +1,9 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../paper-swatch-picker/paper-swatch-picker.html">
-<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+<link rel="import" href="../lib-d3/lib-d3.html">
 <script type="text/javascript" src="./js/sankey.js"></script>
 
 
@@ -10,7 +12,7 @@
 <!--
 `sankey-composition`
 The element is showing a set of glycan composition in a sankey
-
+Important: The component is set to work on a subfolder '/glynsight'.
 @demo demo/index.html
 -->
 
@@ -42,15 +44,21 @@ The element is showing a set of glycan composition in a sankey
       }
 
       .edgeCard {
-        width: 60px;
-      }
-      paper-slider {
-        width: 100%
+        width: 50px;
+        font-size: 16px;
       }
 
+      h3 {
+        color: #000;
+      }
+
+      .box{
+        width: 340px;
+        margin-bottom: 15px;
+      }
     </style>
-    <div>
-      <div>
+    <div class="horizontal layout wrap">
+      <div class="box">
         <h3>Edge Selection</h3>
         <div style="display: flex">
           <div class="edgeCard">
@@ -74,20 +82,27 @@ The element is showing a set of glycan composition in a sankey
             <paper-swatch-picker color="#b8a9c9" id="colorNeuAc"></paper-swatch-picker>
           </div>
           <div class="edgeCard">
-            <p style="padding-left: 6px">NeuGc</p>
-            <paper-toggle-button style="padding-left: 10px" id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
-            <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker>
-          </div>
-          <div class="edgeCard">
             <p style="padding-left: 16px">Sulf</p>
             <paper-toggle-button style="padding-left: 10px" id="toggleSulf" on-change="hideEdges"></paper-toggle-button>
             <paper-swatch-picker color="#26c8fe" id="colorSulf"></paper-swatch-picker>
           </div>
+          <div class="edgeCard">
+            <p style="padding-left: 6px">NeuGc</p>
+            <paper-toggle-button style="padding-left: 10px" id="toggleNeuGc" on-change="hideEdges"></paper-toggle-button>
+            <paper-swatch-picker color="#d5f4e6" id="colorNeuGc"></paper-swatch-picker>
+          </div>
         </div>
       </div>
-      <div id="chart"></div>
+      <div class="box">
+        <h3>Scale Setting</h3>
+        <div class="horizontal layout">
+          <paper-input style="width:48%;padding-right: 16px" on-input="changeLegendValue" label="Scale Value" type='number' value="{{legendValue}}"></paper-input>
+          <paper-input style="width:48%" on-input="changeLegendCaption" label="Scale Unit" type='text' value="{{legendCaption}}"></paper-input>
+        </div>
+        <paper-input on-input="changeExpressionThreshold" label="Expression Threshold" type='number' value="{{expressionThreshold}}"></paper-input>
+      </div>
     </div>
-
+    <div id="chart"></div>
 
   </template>
 
@@ -96,6 +111,21 @@ The element is showing a set of glycan composition in a sankey
       static get is() { return 'sankey-composition'; }
       static get properties() {
         return {
+          legendCaption:{
+            type: String,
+            value: '%'
+          },
+
+          legendValue:{
+            type: Number,
+            value: 5
+          },
+
+          expressionThreshold:{
+            type: Number,
+            value: 1
+          },
+
           selectedExperiment: {
             type: Object,
             reflectToAttribute: true,
@@ -123,6 +153,10 @@ The element is showing a set of glycan composition in a sankey
             value: false
           },
 
+          mode: {
+            type: String
+          },
+
           sankeyKy: {
             type: Number,
             value:100
@@ -130,10 +164,7 @@ The element is showing a set of glycan composition in a sankey
         };
       }
 
-      constructor(){
-        super();
-        this.addEventListener('color-picker-selected','colorChangeHandler');
-      }
+
 
       init(){
         //Add for internet Explorer
@@ -151,19 +182,19 @@ The element is showing a set of glycan composition in a sankey
         var margin = {top: 6, right: 1, bottom: 6, left: 1};
 
         this.svg = d3.select(this.$.chart)
-                .append("div")
-                .classed("svg-container", true) //container class to make it responsive
-                .append("svg")
-                .attr("preserveAspectRatio", "xMinYMin meet")
-                .attr('viewBox','0 0 '+this.width+' '+this.height)
-                .classed("svg-content-responsive", true)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .append("div")
+            .classed("svg-container", true) //container class to make it responsive
+            .append("svg")
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr('viewBox','0 0 '+this.width+' '+this.height)
+            .classed("svg-content-responsive", true)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         this.sankey = d3.sankey()
-                .nodeWidth(15)
-                .nodePadding(10)
-                .size([1230, 800]);
+            .nodeWidth(15)
+            .nodePadding(10)
+            .size([1230, 800]);
 
         this.path = this.sankey.link();
       }
@@ -186,6 +217,7 @@ The element is showing a set of glycan composition in a sankey
             maxWidth = dataExp.nodes[i].x;
           }
         }
+
         if(this.width < maxWidth) {
           maxWidth = maxWidth+50;
           Polymer.dom(this.root).querySelector('svg').setAttribute('viewBox', '0 0 ' + maxWidth + ' ' + this.height);
@@ -193,90 +225,110 @@ The element is showing a set of glycan composition in a sankey
         this.sankeyKy = sankey.kyValue();
 
         var link = this.svg.append("g").selectAll(".link")
-                .data(dataExp.links)
-                .enter().append("path")
-                .attr("class", function(d) { return "link link"+d.difference; })
-                .style("stroke",this._edgecolor)
-                .style('fill','none')
-                .style("stroke-opacity", .5)
-                .on('mouseover', function(d){
-                  d3.select(this).style("stroke-opacity", 1);
-                })
-                .on('mouseout', function(d){
-                  d3.select(this).style("stroke-opacity", 0.5);
-                })
-                .style('opacity', 0)
-                .attr("d", path)
-                .style("stroke-width", 4)
-                .sort(function(a, b) { return b.dy - a.dy; });
+            .data(dataExp.links)
+            .enter().append("path")
+            .attr("class", function(d) { return "link link"+d.difference; })
+            .style("stroke",this._edgecolor)
+            .style('fill','none')
+            .style("stroke-opacity", .5)
+            .on('mouseover', function(d){
+              d3.select(this).style("stroke-opacity", 1);
+            })
+            .on('mouseout', function(d){
+              d3.select(this).style("stroke-opacity", 0.5);
+            })
+            .style('opacity', 0)
+            .attr("d", path)
+            .style("stroke-width", 4)
+            .sort(function(a, b) { return b.dy - a.dy; });
 
         link.append("title")
-                .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value+" "+d.difference; });
+            .text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value+" "+d.difference; });
 
         var node = this.svg.append("g").selectAll(".node")
-                .data(dataExp.nodes)
-                .enter().append("g")
-                .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-                .on("click",function(e){
-                  that.selectedStructure = e.unicarbEncoding;
-                })
-                .call(d3.behavior.drag()
-                        .origin(function(d) { return d; })
-                        .on("drag", dragmove));
+            .data(dataExp.nodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+            .on("click",function(e){
+              that.selectedStructure = e.unicarbEncoding;
+            })
+            .call(d3.behavior.drag()
+                .origin(function(d) { return d; })
+                .on("drag", dragmove));
+
+        var expressionThreshold = this.expressionThreshold;
 
         node.append("rect")
-                .attr("height", function(d) { return d.dy; })
-                .attr("width", sankey.nodeWidth())
-                .style("fill", function(d) {
-                  if(isNaN(d.percentage)){
-                    return 'gray';
-                  }
+            .attr("height", function(d) { return d.dy; })
+            .attr("width", sankey.nodeWidth())
+            .style("fill", function(d) {
+              if(isNaN(d.quantification)){
+                return 'gray';
+              }
 
-                  var p = parseFloat(d.percentage);
-                  var url;
-                  if(this.baseURI){
-                    url = this.baseURI;
-                  } else {
-                    url = document.URL;
-                  }
-                  if(url.indexOf('difference') !== -1){
-                    if(p < 0){
-                      return 'red';
-                    } else if(p > 0){
-                      return 'blue';
-                    } else if(p === 0){
-                      return 'white';
-                    }
-                  } else {
-                    if(p === 0){
-                      return 'white';
-                    } else if(p < 1 && p > 0){
-                      return 'yellow';
-                    } else if(p >= 1){
-                      return 'green';
-                    }
-                  }
-                })
-                .style("stroke", 'black')
-                .append("title")
-                .text(function(d) {
-                  if(isNaN(d.percentage)){
-                    return d.name + "\n" + "Not Tested" ;
-                  } else {
-                    return d.name + "\n" + "Intensity: " + format(d.percentage);
-                  }});
+              var p = parseFloat(d.quantification);
+              var url;
+              if(this.baseURI){
+                url = this.baseURI;
+              } else {
+                url = document.URL;
+              }
+              if(url.indexOf('difference') !== -1){
+                if(p < 0){
+                  return 'red';
+                } else if(p > 0){
+                  return 'blue';
+                } else if(p === 0){
+                  return 'white';
+                }
+              } else {
+                if(p === 0){
+                  return 'white';
+                } else if(p < expressionThreshold && p > 0){
+                  return 'yellow';
+                } else if(p >= expressionThreshold){
+                  return 'green';
+                }
+              }
+            })
+            .style("stroke", 'black')
+            .append("title")
+            .text(function(d) {
+              if(isNaN(d.quantification)){
+                return d.name + "\n" + "Not Tested" ;
+              } else {
+                return d.name + "\n" + "Intensity: " + format(d.quantification);
+              }});
 
         node.append("text")
-                .attr("x", -6)
-                .attr("y", function(d) { return d.dy / 2; })
-                .attr("dy", ".35em")
-                .attr("text-anchor", "end")
-                .attr("transform", null)
-                .text(function(d) { return d.name; })
-                .filter(function(d) { return d.x < 1; })
-                .attr("x", 6 + sankey.nodeWidth())
-                .attr("text-anchor", "start");
+            .attr("x", -6)
+            .attr("y", function(d) { return d.dy / 2; })
+            .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .attr("transform", null)
+            .text(function(d) { return d.name; })
+            .filter(function(d) { return d.x < 1; })
+            .attr("x", 6 + sankey.nodeWidth())
+            .attr("text-anchor", "start");
+
+        var legend = this.svg.append("g")
+            .attr("class", "legend");
+
+        legend.append("rect")
+            .attr("height", this.legendValue * this.sankeyKy)
+            .attr("width", sankey.nodeWidth())
+            .style("fill",'#7a527a' )
+            .style("stroke", 'black');
+
+        legend.append("text")
+            .attr("x", -6)
+            .attr("y", (this.legendValue * this.sankeyKy)/2)
+            .attr("dy", ".35em")
+            .attr("transform", null)
+            .text(this.legendValue+' '+this.legendCaption)
+            .attr("x", 6 + sankey.nodeWidth())
+            .attr("text-anchor", "start");
 
         this.initSankey = true;
 
@@ -288,11 +340,12 @@ The element is showing a set of glycan composition in a sankey
 
       }
 
-      _selectedExperimentChanged(newValue){
+      _selectedExperimentChanged (newValue){
 
         if(newValue.mode == '' || newValue.mode == null){
           return;
         }
+        this.mode = newValue.mode;
         var dataExp;
 
         if(newValue.mode == 'difference'){
@@ -302,7 +355,7 @@ The element is showing a set of glycan composition in a sankey
             var dataExp1 = JSON.parse(localStorage.getItem('GLYNSIGHTID_'+exp[0])).data;
 
             if(Object.keys(dataExp1).length === 0 && dataExp1.constructor === Object
-                    && Object.keys(dataExp2).length === 0 && dataExp2.constructor === Object){
+                && Object.keys(dataExp2).length === 0 && dataExp2.constructor === Object){
               return;
             }
 
@@ -311,24 +364,22 @@ The element is showing a set of glycan composition in a sankey
               map[dataExp2.nodes[i].name] = dataExp2.nodes[i];
             }
             for(var j = 0; j < dataExp1.nodes.length; j++){
-              if(dataExp1.nodes[j].percentage != 'nottested' && map[dataExp1.nodes[j].name].percentage != 'nottested'){
-                dataExp1.nodes[j]['percentage'] = parseFloat(dataExp1.nodes[j].percentage) - parseFloat(map[dataExp1.nodes[j].name].percentage);
-              } else if (dataExp1.nodes[j].percentage == 'nottested' && map[dataExp1.nodes[j].name].percentage != 'nottested'){
-                dataExp1.nodes[j]['percentage'] = 0 - parseFloat(map[dataExp1.nodes[j].name].percentage);
+              if(dataExp1.nodes[j].quantification != 'nottested' && map[dataExp1.nodes[j].name].quantification != 'nottested'){
+                dataExp1.nodes[j]['quantification'] = parseFloat(dataExp1.nodes[j].quantification) - parseFloat(map[dataExp1.nodes[j].name].quantification);
+              } else if (dataExp1.nodes[j].quantification == 'nottested' && map[dataExp1.nodes[j].name].quantification != 'nottested'){
+                dataExp1.nodes[j]['quantification'] = 0 - parseFloat(map[dataExp1.nodes[j].name].quantification);
               }
             }
             dataExp = dataExp1;
           } catch(error) {
-            console.log(error);
-            //Todo: add paper toast with error
+            window.location = '/glynsight/error404';
           }
 
         } else {
           try {
             dataExp = JSON.parse(localStorage.getItem(newValue.exp)).data;
           } catch(error) {
-            //TODO: add paper toast
-            window.location = '/';
+            window.location = '/glynsight/error404';
           }
 
           if(Object.keys(dataExp).length === 0 && dataExp.constructor === Object){
@@ -345,7 +396,7 @@ The element is showing a set of glycan composition in a sankey
       }
 
 
-      _updateSankey(dataExp){
+      _updateSankey (dataExp){
 
         var format = d3.format(".4f");
         var edgeOpacityMap = {};
@@ -358,10 +409,10 @@ The element is showing a set of glycan composition in a sankey
 
 
         this.sankey.nodes(dataExp.nodes)
-                .links(dataExp.links)
-                .kyValue(this.sankeyKy)
-                .size([1230, 800])
-                .layout(32);
+            .links(dataExp.links)
+            .kyValue(this.sankeyKy)
+            .size([1230, 800])
+            .layout(32);
 
         this.sankeyKy = this.sankey.kyValue();
 
@@ -378,96 +429,97 @@ The element is showing a set of glycan composition in a sankey
         }
 
         var nodes = this.svg.selectAll(".node")
-                .data(dataExp.nodes)
-                .transition()
-                .duration(1000)
-                .attr("transform", function(d) {
-                  return "translate(" + d.x + "," + d.y + ")"; });
+            .data(dataExp.nodes)
+            .transition()
+            .duration(1000)
+            .attr("transform", function(d) {
+              return "translate(" + d.x + "," + d.y + ")"; });
 
+        var expressionThreshold = this.expressionThreshold;
         this.svg.selectAll("rect")
-                .data(dataExp.nodes)
-                .transition()
-                .duration(1000)
-                .attr("height", function(d) { return d.dy; })
-                .attr("width", this.sankey.nodeWidth())
-                .style("fill", function(d) {
-                  if(isNaN(d.percentage)){
-                    return 'gray';
-                  }
-                  var p = parseFloat(d.percentage);
-                  var url;
-                  if(this.baseURI){
-                    url = this.baseURI;
-                  } else {
-                    url = document.URL;
-                  }
-                  if(url.indexOf('difference') !== -1){
-                    if(p < 0){
-                      return 'red';
-                    } else if(p > 0){
-                      return 'blue';
-                    } else if(p == 0){
-                      return 'white';
-                    }
-                  } else {
-                    if(p === 0){
-                      return 'white';
-                    } else if(p < 1 && p > 0){
-                      return 'yellow';
-                    } else if(p >= 1){
-                      return 'green';
-                    }
-                  }
-                });
+            .data(dataExp.nodes)
+            .transition()
+            .duration(1000)
+            .attr("height", function(d) { return d.dy; })
+            .attr("width", this.sankey.nodeWidth())
+            .style("fill", function(d) {
+              if(isNaN(d.quantification)){
+                return 'gray';
+              }
+              var p = parseFloat(d.quantification);
+              var url;
+              if(this.baseURI){
+                url = this.baseURI;
+              } else {
+                url = document.URL;
+              }
+              if(url.indexOf('difference') !== -1){
+                if(p < 0){
+                  return 'red';
+                } else if(p > 0){
+                  return 'blue';
+                } else if(p == 0){
+                  return 'white';
+                }
+              } else {
+                if(p === 0){
+                  return 'white';
+                } else if(p < expressionThreshold && p > 0){
+                  return 'yellow';
+                } else if(p >= expressionThreshold){
+                  return 'green';
+                }
+              }
+            });
 
         nodes.selectAll('title').remove();
 
         this.svg.selectAll(".node").append('title')
-                .data(dataExp.nodes)
-                .transition()
-                .duration(1000)
-                .text(function(d) {
-                  if(isNaN(d.percentage)){
-                    return d.name + "\n" + "Not Tested" ;
-                  } else{
-                    return d.name + "\n" + "Intensity: " + format(d.percentage);
-                  }});
+            .data(dataExp.nodes)
+            .transition()
+            .duration(1000)
+            .text(function(d) {
+              if(isNaN(d.quantification)){
+                return d.name + "\n" + "Not Tested" ;
+              } else{
+                return d.name + "\n" + "Intensity: " + format(d.quantification);
+              }});
 
         this.svg.selectAll("text")
-                .data(dataExp.nodes).attr("x", -6)
-                .attr("y", function(d) { return d.dy / 2; })
-                .attr("dy", ".35em")
-                .attr("text-anchor", "end")
-                .attr("transform", null)
-                .text(function(d) { return d.name; })
-                .filter(function(d) { return d.x < 1; })
-                .attr("x", 6 + this.sankey.nodeWidth())
-                .attr("text-anchor", "start");
+            .data(dataExp.nodes).attr("x", -6)
+            .attr("y", function(d) { return d.dy / 2; })
+            .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .attr("transform", null)
+            .text(function(d) { return d.name; })
+            .filter(function(d) { return d.x < 1; })
+            .attr("x", 6 + this.sankey.nodeWidth())
+            .attr("text-anchor", "start");
 
 
 
         var links = this.svg.selectAll(".link")
-                .data(dataExp.links)
-                .transition()
-                .duration(1000)
-                .attr("d", this.path)
-                .attr("class", function(d) { return "link"+d.difference+ " link"; })
-                .style("opacity", function (d) {
-                  if (Math.abs(d.source.percentage) > 0 && Math.abs(d.target.percentage) > 0 && edgeOpacityMap[d.difference]) {
-                    return 1;
-                  } else {
-                    return 0;
-                  }})
-                .sort(function(a, b) {
-                  return b.dy - a.dy; });
+            .data(dataExp.links)
+            .transition()
+            .duration(1000)
+            .attr("d", this.path)
+            .attr("class", function(d) { return "link"+d.difference+ " link"; })
+            .style("opacity", function (d) {
+              if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && edgeOpacityMap[d.difference]) {
+                return 1;
+              } else {
+                return 0;
+              }})
+            .sort(function(a, b) {
+              return b.dy - a.dy; });
 
         links.selectAll('title').remove();
         this.svg.selectAll(".link").append("title").text(function(d) { return d.source.name + " → " + d.target.name + "\n" + d.value+" "+d.difference; });
-
+        this._updateScale();
       }
 
 
-      _edgecolor(d){
+      _edgecolor (d){
         switch (d.difference) {
           case "Fuc":
             return '#c94c4c';
@@ -486,20 +538,21 @@ The element is showing a set of glycan composition in a sankey
         }
       }
 
-      colorChangeHandler(e){
-        var colorPicker = e.path[0];
+
+      colorChangeHandler (e){
+        var colorPicker = Polymer.dom(e).rootTarget;
         var edges = d3.select(this.$.chart).selectAll('.link'+colorPicker.id.replace('color',''));
         for (var i = 0; i < edges.length; i++) {
           edges.style("stroke", e.detail.color);
         }
       }
 
-      hideEdges(e) {
+      hideEdges (e) {
         var toggleButton = e.target;
         var edges = d3.select(this.$.chart).selectAll('.link'+toggleButton.id.replace('toggle',''));
         for (var i = 0; i < edges.length; i++) {
           edges.style("opacity", function (d) {
-            if (Math.abs(d.source.percentage) > 0 && Math.abs(d.target.percentage) > 0 && toggleButton.checked) {
+            if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && toggleButton.checked) {
               return 1;
             } else {
               return 0;
@@ -508,10 +561,71 @@ The element is showing a set of glycan composition in a sankey
         }
       }
 
-      downloadSankey(){
+      changeLegendCaption (e){
+        this.legendCaption = e.target.value;
+        this._updateScale();
+      }
+
+      changeLegendValue (e){
+        this.legendValue = e.target.value;
+        this._updateScale();
+      }
+
+      _updateScale (){
+        var legend =this.svg.selectAll(".legend");
+
+        legend.selectAll("rect")
+            .transition()
+            .duration(1000)
+            .attr("height", this.legendValue * this.sankeyKy)
+            .attr("width", this.sankey.nodeWidth())
+            .style("fill",'#7a527a' )
+            .style("stroke", 'black');
+
+        legend.selectAll("text")
+            .transition()
+            .duration(1000)
+            .attr("x", -6)
+            .attr("y", (this.legendValue * this.sankeyKy)/2)
+            .attr("dy", ".35em")
+            .attr("transform", null)
+            .text(this.legendValue+' '+this.legendCaption)
+            .attr("x", 6 + this.sankey.nodeWidth())
+            .attr("text-anchor", "start");
+      }
+
+      changeExpressionThreshold (e){
+        if(this. mode != 'show'){
+          return
+        }
+        this.expressionThreshold = e.target.value;
+        var threshold = e.target.value;
+        this.svg.selectAll("rect")
+            .transition()
+            .duration(1000)
+            .style("fill", function(d) {
+              if(d){
+                if(isNaN(d.quantification)){
+                  return 'gray';
+                }
+                var p = parseFloat(d.quantification);
+                if(p === 0){
+                  return 'white';
+                } else if(p < threshold && p > 0){
+                  return 'yellow';
+                } else if(p >= threshold){
+                  return 'green';
+                }
+              } else {
+                return this.style.fill;
+              }
+            });
+      }
+
+      downloadSankey (){
 
         var doctype = '<?xml version="1.0" standalone="no"?>'
-                + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+            + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
         var source = (new XMLSerializer()).serializeToString(Polymer.dom(this.root).querySelector('svg'));
         var blob = new Blob([ doctype + source], { type: 'image/svg+xml;charset=utf-8' });
         var svgUrl = URL.createObjectURL(blob);
