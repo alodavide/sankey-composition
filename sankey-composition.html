@@ -6,13 +6,9 @@
 <link rel="import" href="../lib-d3/lib-d3.html">
 <script type="text/javascript" src="./js/sankey.js"></script>
 
-
-
-
 <!--
 `sankey-composition`
 The element is showing a set of glycan composition in a sankey
-Important: The component is set to work on a subfolder '/glynsight'.
 @demo demo/index.html
 -->
 
@@ -158,6 +154,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
 
           mode: {
             type: String,
+            reflectToAttribute: true,
             default: 'show',
             observer: '_enumMode'
           }
@@ -290,7 +287,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
               } else {
                 url = document.URL;
               }
-              if(url.indexOf('difference') !== -1){
+              if(that.mode == 'difference'){
                 if(p < 0){
                   return 'red';
                 } else if(p > 0){
@@ -365,7 +362,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
         var dataExp;
         var exp = newValue;
 
-        if(newValue.mode == 'difference'){
+        if(this.mode == 'difference'){
           try {
             var dataExp2 = JSON.parse(localStorage.getItem('GLYNSIGHTID_'+exp[1])).data;
             var dataExp1 = JSON.parse(localStorage.getItem('GLYNSIGHTID_'+exp[0])).data;
@@ -424,7 +421,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
         edgeOpacityMap['NeuGc']= this.$.toggleNeuGc.checked;
         edgeOpacityMap['Sulf']= this.$.toggleSulf.checked;
 
-
+        var mode = this.mode;
         this.sankey.nodes(dataExp.nodes)
             .links(dataExp.links)
             .kyValue(this.sankeyKy)
@@ -460,6 +457,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
             .attr("height", function(d) { return d.dy; })
             .attr("width", this.sankey.nodeWidth())
             .style("fill", function(d) {
+
               if(isNaN(d.quantification)){
                 return 'gray';
               }
@@ -470,7 +468,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
               } else {
                 url = document.URL;
               }
-              if(url.indexOf('difference') !== -1){
+              if(mode == 'difference'){
                 if(p < 0){
                   return 'red';
                 } else if(p > 0){
@@ -612,7 +610,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
       }
 
       changeExpressionThreshold (e){
-        if(this. mode != 'show'){
+        if(this.mode != 'show'){
           return
         }
         this.expressionThreshold = e.target.value;
@@ -661,6 +659,7 @@ Important: The component is set to work on a subfolder '/glynsight'.
     }
 
     window.customElements.define(SankeyComposition.is, SankeyComposition);
+
 
   </script>
 </dom-module>
