@@ -89,7 +89,7 @@ The element is showing a set of glycan composition in a sankey
       <div class="box">
         <h3>Scale Setting</h3>
         <div class="horizontal layout">
-          <paper-input style="width:48%;padding-right: 16px" on-input="changeLegendValue" label="Scale Value" type='number' value="{{legendValue}}"></paper-input>
+          <paper-input style="width:48%;padding-right: 16px" on-value-changed="changeLegendValue" label="Scale Value" type='number' value="{{legendValue}}"></paper-input>
           <paper-input style="width:48%" on-input="changeLegendCaption" label="Scale Unit" type='text' value="{{legendCaption}}"></paper-input>
         </div>
         <paper-input on-input="changeExpressionThreshold" label="Expression Threshold" type='number' value="{{expressionThreshold}}"></paper-input>
