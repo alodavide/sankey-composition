@@ -3,6 +3,7 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../paper-swatch-picker/paper-swatch-picker.html">
+<link rel="import" href="../neon-animation/web-animations.html">
 <link rel="import" href="../lib-d3/lib-d3.html">
 <script type="text/javascript" src="./js/sankey.js"></script>
 
@@ -160,6 +161,11 @@ The element is showing a set of glycan composition in a sankey
           }
 
         };
+      }
+
+      ready () {
+        super.ready();
+        this.addEventListener('color-picker-selected', this.colorChangeHandler)
       }
 
       _enumMode(newValue, oldValue) {
