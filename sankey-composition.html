@@ -653,7 +653,14 @@ The element is showing a set of glycan composition in a sankey
         var downloadLink = document.createElement("a");
 
         downloadLink.href = svgUrl;
-        downloadLink.download = JSON.parse(localStorage.getItem(this.selectedExperiment.exp)).name+"-export.svg";
+        if(this.selectedExperiment.length === 1){
+          downloadLink.download =  JSON.parse(localStorage.getItem("GLYNSIGHTID_"+this.selectedExperiment[0])).name+"-export.svg";
+        }
+        if(this.selectedExperiment.length == 2){
+          downloadLink.download =  JSON.parse(localStorage.getItem("GLYNSIGHTID_"+this.selectedExperiment[0])).name + "_" +
+              JSON.parse(localStorage.getItem("GLYNSIGHTID_"+this.selectedExperiment[1])).name +
+              "-diff-export.svg";
+        }
         downloadLink.target = "_blank";
         document.body.appendChild(downloadLink);
         downloadLink.click();
