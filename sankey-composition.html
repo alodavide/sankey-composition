@@ -294,12 +294,20 @@ The element is showing a set of glycan composition in a sankey
                 url = document.URL;
               }
               if(that.mode == 'difference'){
-                if(p < 0){
-                  return 'red';
-                } else if(p > 0){
-                  return 'blue';
-                } else if(p === 0){
+                if(p < 0 && d.color == 'noexp'){
+                  return '#ff9999';
+                } else if(p > 0 && d.color == 'noexp'){
+                  return '#cce0ff';
+                } else if(p == 0){
                   return 'white';
+                }
+
+                if(d.color == 'exp1'){
+                  return 'blue';
+                }
+
+                if(d.color == 'exp2') {
+                  return 'red';
                 }
               } else {
                 if(p === 0){
@@ -383,11 +391,24 @@ The element is showing a set of glycan composition in a sankey
               map[dataExp2.nodes[i].name] = dataExp2.nodes[i];
             }
             for(var j = 0; j < dataExp1.nodes.length; j++){
+              //check for compositions present in one exp!
               if(dataExp1.nodes[j].quantification != 'nottested' && map[dataExp1.nodes[j].name].quantification != 'nottested'){
-                dataExp1.nodes[j]['quantification'] = parseFloat(dataExp1.nodes[j].quantification) - parseFloat(map[dataExp1.nodes[j].name].quantification);
+                dataExp1.nodes[j]['color'] = 'noexp';
+                if(dataExp1.nodes[j].quantification == 0){
+                  dataExp1.nodes[j]['color'] = 'exp2';
+                }
+                if(map[dataExp1.nodes[j].name].quantification == 0){
+                  dataExp1.nodes[j]['color'] = 'exp1';
+                }
+
               } else if (dataExp1.nodes[j].quantification == 'nottested' && map[dataExp1.nodes[j].name].quantification != 'nottested'){
                 dataExp1.nodes[j]['quantification'] = 0 - parseFloat(map[dataExp1.nodes[j].name].quantification);
+                dataExp1.nodes[j]['color'] = 'exp2';
+
+              } else if (dataExp1.nodes[j].quantification != 'nottested' && map[dataExp1.nodes[j].name].quantification == 'nottested'){
+                dataExp1.nodes[j]['color'] = 'exp1';
               }
+              dataExp1.nodes[j]['quantification'] = parseFloat(dataExp1.nodes[j].quantification) - parseFloat(map[dataExp1.nodes[j].name].quantification);
             }
             dataExp = dataExp1;
           } catch(error) {
@@ -475,12 +496,20 @@ The element is showing a set of glycan composition in a sankey
                 url = document.URL;
               }
               if(mode == 'difference'){
-                if(p < 0){
-                  return 'red';
-                } else if(p > 0){
-                  return 'blue';
+                if(p < 0 && d.color == 'noexp'){
+                  return '#ff9999';
+                } else if(p > 0 && d.color == 'noexp'){
+                  return '#cce0ff';
                 } else if(p == 0){
                   return 'white';
+                }
+
+                if(d.color == 'exp1'){
+                  return 'blue';
+                }
+
+                if(d.color == 'exp2') {
+                  return 'red';
                 }
               } else {
                 if(p === 0){
@@ -656,7 +685,7 @@ The element is showing a set of glycan composition in a sankey
         if(this.selectedExperiment.length === 1){
           downloadLink.download =  JSON.parse(localStorage.getItem("GLYNSIGHTID_"+this.selectedExperiment[0])).name+"-export.svg";
         }
-        if(this.selectedExperiment.length == 2){
+        if(this.selectedExperiment.length === 2){
           downloadLink.download =  JSON.parse(localStorage.getItem("GLYNSIGHTID_"+this.selectedExperiment[0])).name + "_" +
               JSON.parse(localStorage.getItem("GLYNSIGHTID_"+this.selectedExperiment[1])).name +
               "-diff-export.svg";
