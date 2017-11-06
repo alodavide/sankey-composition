@@ -554,6 +554,7 @@ The element is showing a set of glycan composition in a sankey
             .duration(1000)
             .attr("d", this.path)
             .attr("class", function(d) { return "link"+d.difference+ " link"; })
+            .style("stroke",this._edgecolor)
             .style("opacity", function (d) {
               if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && edgeOpacityMap[d.difference]) {
                 return 1;
