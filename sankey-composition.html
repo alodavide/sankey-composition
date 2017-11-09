@@ -393,6 +393,7 @@ The element is showing a set of glycan composition in a sankey
             for(var j = 0; j < dataExp1.nodes.length; j++){
               //check for compositions present in one exp!
               if(dataExp1.nodes[j].quantification != 'nottested' && map[dataExp1.nodes[j].name].quantification != 'nottested'){
+                dataExp1.nodes[j]['quantification'] = parseFloat(dataExp1.nodes[j].quantification) - parseFloat(map[dataExp1.nodes[j].name].quantification);
                 dataExp1.nodes[j]['color'] = 'noexp';
                 if(dataExp1.nodes[j].quantification == 0){
                   dataExp1.nodes[j]['color'] = 'exp2';
@@ -408,7 +409,6 @@ The element is showing a set of glycan composition in a sankey
               } else if (dataExp1.nodes[j].quantification != 'nottested' && map[dataExp1.nodes[j].name].quantification == 'nottested'){
                 dataExp1.nodes[j]['color'] = 'exp1';
               }
-              dataExp1.nodes[j]['quantification'] = parseFloat(dataExp1.nodes[j].quantification) - parseFloat(map[dataExp1.nodes[j].name].quantification);
             }
             dataExp = dataExp1;
           } catch(error) {
