@@ -21,8 +21,11 @@ The element is showing a set of glycan composition in a sankey
       }
 
       .node text {
-        pointer-events: none;
         text-shadow: 0 1px 0 #fff;
+      }
+
+      .textSelected{
+        fill: red;
       }
 
       .svg-container {
@@ -269,9 +272,6 @@ The element is showing a set of glycan composition in a sankey
             .enter().append("g")
             .attr("class", "node")
             .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-            .on("click",function(e){
-              that.selectedStructure = e.unicarbEncoding;
-            })
             .call(d3.behavior.drag()
                 .origin(function(d) { return d; })
                 .on("drag", dragmove));
@@ -281,6 +281,15 @@ The element is showing a set of glycan composition in a sankey
         node.append("rect")
             .attr("height", function(d) { return d.dy; })
             .attr("width", sankey.nodeWidth())
+            .on("click",function(e){
+              that.selectedStructure = e.unicarbEncoding;
+            })
+            .on("mouseover", function(d) {
+              d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function(d) {
+              d3.select(this).style("cursor", "default");
+            })
             .style("fill", function(d) {
               if(isNaN(d.quantification)){
                 return 'gray';
@@ -334,6 +343,15 @@ The element is showing a set of glycan composition in a sankey
             .attr("dy", ".35em")
             .attr("text-anchor", "end")
             .attr("transform", null)
+            .attr("fill", 'black')
+            .style("cursor", "pointer")
+            .on("click",function(e){
+              if(d3.select(this).classed("textSelected")){
+                d3.select(this).classed("textSelected", false);
+              } else {
+                d3.select(this).classed("textSelected", true);
+              }
+            })
             .text(function(d) { return d.name; })
             .filter(function(d) { return d.x < 1; })
             .attr("x", 6 + sankey.nodeWidth())
