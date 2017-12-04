@@ -162,7 +162,6 @@ The element is showing a set of glycan composition in a sankey
             default: 'show',
             observer: '_enumMode'
           }
-
         };
       }
 
@@ -412,6 +411,7 @@ The element is showing a set of glycan composition in a sankey
               //check for compositions present in one exp!
               if(dataExp1.nodes[j].quantification != 'nottested' && map[dataExp1.nodes[j].name].quantification != 'nottested'){
                 dataExp1.nodes[j]['color'] = 'noexp';
+
                 if(dataExp1.nodes[j].quantification == 0){
                   dataExp1.nodes[j]['color'] = 'exp2';
                 }
@@ -459,12 +459,31 @@ The element is showing a set of glycan composition in a sankey
 
         var format = d3.format(".4f");
         var edgeOpacityMap = {};
-        edgeOpacityMap['Fuc']= this.$.toggleFuc.checked;
-        edgeOpacityMap['Hex']= this.$.toggleHex.checked;
-        edgeOpacityMap['HexNAc']= this.$.toggleHexNAc.checked;
-        edgeOpacityMap['NeuAc']= this.$.toggleNeuAc.checked;
-        edgeOpacityMap['NeuGc']= this.$.toggleNeuGc.checked;
-        edgeOpacityMap['Sulf']= this.$.toggleSulf.checked;
+        //Save edge state from previous drawing.
+        edgeOpacityMap['Fuc'] = {
+          toogle: this.$.toggleFuc.checked,
+          color: this.$.colorFuc.color
+        };
+        edgeOpacityMap['Hex'] = {
+          toogle: this.$.toggleHex.checked,
+          color: this.$.colorHex.color
+        };
+        edgeOpacityMap['HexNAc'] = {
+          toogle: this.$.toggleHexNAc.checked,
+          color: this.$.colorHexNAc.color
+        };
+        edgeOpacityMap['NeuAc'] = {
+          toogle: this.$.toggleNeuAc.checked,
+          color: this.$.colorNeuAc.color
+        };
+        edgeOpacityMap['NeuGc']= {
+          toogle: this.$.toggleNeuGc.checked,
+          color: this.$.colorNeuGc.color
+        };
+        edgeOpacityMap['Sulf'] = {
+          toogle: this.$.toggleSulf.checked,
+          color: this.$.colorSulf.color
+        };
 
         var mode = this.mode;
         this.sankey.nodes(dataExp.nodes)
@@ -572,13 +591,15 @@ The element is showing a set of glycan composition in a sankey
             .duration(1000)
             .attr("d", this.path)
             .attr("class", function(d) { return "link"+d.difference+ " link"; })
-            .style("stroke",this._edgecolor)
             .style("opacity", function (d) {
-              if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && edgeOpacityMap[d.difference]) {
+              if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && edgeOpacityMap[d.difference].toogle) {
                 return 1;
               } else {
                 return 0;
               }})
+            .style("stroke",function(d){
+              return edgeOpacityMap[d.difference].color;
+            })
             .sort(function(a, b) {
               return b.dy - a.dy; });
 
