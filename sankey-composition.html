@@ -24,10 +24,14 @@ The element is showing a set of glycan composition in a sankey
         text-shadow: 0 1px 0 #fff;
       }
 
-      .textSelected{
+      .textSelected {
         fill: red;
       }
 
+      .edgeSelected {
+        stroke-opacity: 1;
+        stroke-width: 6;
+      }
       .svg-container {
         display: inline-block;
         width: 100%;
@@ -159,7 +163,7 @@ The element is showing a set of glycan composition in a sankey
           mode: {
             type: String,
             reflectToAttribute: true,
-            default: 'show',
+            value: 'show',
             observer: '_enumMode'
           }
         };
@@ -250,13 +254,28 @@ The element is showing a set of glycan composition in a sankey
             .enter().append("path")
             .attr("class", function(d) { return "link link"+d.difference; })
             .style("stroke",this._edgecolor)
+            .style("filter","none")
             .style('fill','none')
             .style("stroke-opacity", .5)
             .on('mouseover', function(d){
-              d3.select(this).style("stroke-opacity", 1);
+              var link = d3.select(this);
+              if(!link.classed('edgeSelected')){
+                d3.select(this).style("stroke-opacity", 1);
+              }
             })
             .on('mouseout', function(d){
-              d3.select(this).style("stroke-opacity", 0.5);
+              var link = d3.select(this);
+              if(!link.classed('edgeSelected')) {
+                d3.select(this).style("stroke-opacity", 0.5);
+              }
+            })
+            .on('click', function(d){
+              var link = d3.select(this);
+              if(link.classed("edgeSelected")){
+                link.classed("edgeSelected", false);
+              } else {
+                link.classed("edgeSelected", true);
+              }
             })
             .style('opacity', 0)
             .attr("d", path)
@@ -281,6 +300,7 @@ The element is showing a set of glycan composition in a sankey
             .attr("height", function(d) { return d.dy; })
             .attr("width", sankey.nodeWidth())
             .on("click",function(e){
+              if (d3.event.defaultPrevented) return;
               that.selectedStructure = e.unicarbEncoding;
             })
             .on("mouseover", function(d) {
@@ -293,14 +313,7 @@ The element is showing a set of glycan composition in a sankey
               if(isNaN(d.quantification)){
                 return 'gray';
               }
-
               var p = parseFloat(d.quantification);
-              var url;
-              if(this.baseURI){
-                url = this.baseURI;
-              } else {
-                url = document.URL;
-              }
               if(that.mode == 'difference'){
                 if(p < 0 && d.color == 'noexp'){
                   return '#ff9999';
@@ -377,6 +390,7 @@ The element is showing a set of glycan composition in a sankey
         this.initSankey = true;
 
         function dragmove(d) {
+          d3.event.sourceEvent.stopPropagation();
           d3.select(this).attr("transform", "translate(" + d.x + "," + (d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))) + ")");
           sankey.relayout();
           link.attr("d", path);
@@ -526,12 +540,6 @@ The element is showing a set of glycan composition in a sankey
                 return 'gray';
               }
               var p = parseFloat(d.quantification);
-              var url;
-              if(this.baseURI){
-                url = this.baseURI;
-              } else {
-                url = document.URL;
-              }
               if(mode == 'difference'){
                 if(p < 0 && d.color == 'noexp'){
                   return '#ff9999';
