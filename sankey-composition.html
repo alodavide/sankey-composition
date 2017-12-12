@@ -250,7 +250,9 @@ The element is showing a set of glycan composition in a sankey
         this.sankeyKy = sankey.kyValue();
 
         var link = this.svg.append("g").selectAll(".link")
-            .data(dataExp.links)
+            .data(dataExp.links,function(d) {
+              return d.source.name +"-"+ d.target.name +"-"+ d.difference;
+            })
             .enter().append("path")
             .attr("class", function(d) { return "link link"+d.difference; })
             .style("stroke",this._edgecolor)
@@ -474,30 +476,12 @@ The element is showing a set of glycan composition in a sankey
         var format = d3.format(".4f");
         var edgeOpacityMap = {};
         //Save edge state from previous drawing.
-        edgeOpacityMap['Fuc'] = {
-          toogle: this.$.toggleFuc.checked,
-          color: this.$.colorFuc.color
-        };
-        edgeOpacityMap['Hex'] = {
-          toogle: this.$.toggleHex.checked,
-          color: this.$.colorHex.color
-        };
-        edgeOpacityMap['HexNAc'] = {
-          toogle: this.$.toggleHexNAc.checked,
-          color: this.$.colorHexNAc.color
-        };
-        edgeOpacityMap['NeuAc'] = {
-          toogle: this.$.toggleNeuAc.checked,
-          color: this.$.colorNeuAc.color
-        };
-        edgeOpacityMap['NeuGc']= {
-          toogle: this.$.toggleNeuGc.checked,
-          color: this.$.colorNeuGc.color
-        };
-        edgeOpacityMap['Sulf'] = {
-          toogle: this.$.toggleSulf.checked,
-          color: this.$.colorSulf.color
-        };
+        edgeOpacityMap['Fuc'] = this.$.toggleFuc.checked;
+        edgeOpacityMap['Hex'] = this.$.toggleHex.checked;
+        edgeOpacityMap['HexNAc'] = this.$.toggleHexNAc.checked;
+        edgeOpacityMap['NeuAc'] = this.$.toggleNeuAc.checked;
+        edgeOpacityMap['NeuGc']= this.$.toggleNeuGc.checked;
+        edgeOpacityMap['Sulf'] = this.$.toggleSulf.checked;
 
         var mode = this.mode;
         this.sankey.nodes(dataExp.nodes)
@@ -594,20 +578,16 @@ The element is showing a set of glycan composition in a sankey
 
 
         var links = this.svg.selectAll(".link")
-            .data(dataExp.links)
+            .data(dataExp.links, function(d) {return d.source.name+"-"+d.target.name+"-"+d.difference;})
             .transition()
             .duration(1000)
             .attr("d", this.path)
-            .attr("class", function(d) { return "link"+d.difference+ " link"; })
             .style("opacity", function (d) {
-              if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && edgeOpacityMap[d.difference].toogle) {
+              if (Math.abs(d.source.quantification) > 0 && Math.abs(d.target.quantification) > 0 && edgeOpacityMap[d.difference]) {
                 return 1;
               } else {
                 return 0;
               }})
-            .style("stroke",function(d){
-              return edgeOpacityMap[d.difference].color;
-            })
             .sort(function(a, b) {
               return b.dy - a.dy; });
 
