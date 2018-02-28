@@ -650,26 +650,28 @@ The element is showing a set of glycan composition in a sankey
       }
 
       _updateScale (){
-        var legend =this.svg.selectAll(".legend");
+        if(this.svg) {
+          var legend = this.svg.selectAll(".legend");
 
-        legend.selectAll("rect")
-            .transition()
-            .duration(1000)
-            .attr("height", this.legendValue * this.sankeyKy)
-            .attr("width", this.sankey.nodeWidth())
-            .style("fill",'#7a527a' )
-            .style("stroke", 'black');
+          legend.selectAll("rect")
+              .transition()
+              .duration(1000)
+              .attr("height", this.legendValue * this.sankeyKy)
+              .attr("width", this.sankey.nodeWidth())
+              .style("fill", '#7a527a')
+              .style("stroke", 'black');
 
-        legend.selectAll("text")
-            .transition()
-            .duration(1000)
-            .attr("x", -6)
-            .attr("y", (this.legendValue * this.sankeyKy)/2)
-            .attr("dy", ".35em")
-            .attr("transform", null)
-            .text(this.legendValue+' '+this.legendCaption)
-            .attr("x", 6 + this.sankey.nodeWidth())
-            .attr("text-anchor", "start");
+          legend.selectAll("text")
+              .transition()
+              .duration(1000)
+              .attr("x", -6)
+              .attr("y", (this.legendValue * this.sankeyKy) / 2)
+              .attr("dy", ".35em")
+              .attr("transform", null)
+              .text(this.legendValue + ' ' + this.legendCaption)
+              .attr("x", 6 + this.sankey.nodeWidth())
+              .attr("text-anchor", "start");
+        }
       }
 
       changeExpressionThreshold (e){
